@@ -1,0 +1,85 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "globalEnv": [
+    "NEXT_RUNTIME",
+    "NODE_ENV",
+    "DATABASE_URL",
+    "DATABASE_MIGRATION_URL",
+    "REDIS_URL",
+    "REDIS_PREFIX",
+    "FEATURE_FLAGS_JSON",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "AUTH_FROM_EMAIL",
+    "RESEND_API_KEY",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_SECURE",
+    "SMTP_USER",
+    "SMTP_PASSWORD",
+    "APP_ORIGIN",
+    "API_CORS_ORIGIN",
+    "PORT",
+    "API_SERVICE_NAME",
+    "API_SENTRY_DSN",
+    "API_LOG_LEVEL",
+    "API_LOG_TO_LOKI",
+    "OTEL_EXPORTER_OTLP_ENDPOINT",
+    "LOKI_URL",
+    "API_UPSTREAM_URL",
+    "NEXT_PUBLIC_APP_ENV",
+    "NEXT_PUBLIC_API_BASE_URL",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "VERCEL_URL"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "$TURBO_ROOT$/.env*",
+        "$TURBO_ROOT$/apps/api/.env*",
+        "$TURBO_ROOT$/apps/web/.env*"
+      ],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "coverage/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "dependsOn": ["^test"]
+    },
+    "test:e2e": {
+      "cache": false,
+      "env": ["CI", "PLAYWRIGHT_BASE_URL"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
+    },
+    "start:worker": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "persistent": true
+    },
+    "auth:generate": {
+      "cache": false
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "db:migrate": {
+      "cache": false
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@acme/web-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:e2e": "pnpm exec playwright test",
+    "test:e2e:headed": "pnpm exec playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:tooling",
+    "@types/node": "catalog:tooling"
+  }
+}

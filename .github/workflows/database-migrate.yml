@@ -1,0 +1,49 @@
+name: Database Migrate
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target database environment
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: database-migrate-${{ inputs.environment }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: migrate-${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+
+      - name: Validate migration secret
+        env:
+          DATABASE_MIGRATION_URL: ${{ secrets.DATABASE_MIGRATION_URL }}
+        run: |
+          if [ -z "$DATABASE_MIGRATION_URL" ]; then
+            echo "DATABASE_MIGRATION_URL is required for the selected environment." >&2
+            exit 1
+          fi
+
+      - name: Write migration env files
+        uses: ./.github/actions/write-ci-env
+        with:
+          database-url: ${{ secrets.DATABASE_MIGRATION_URL }}
+          database-migration-url: ${{ secrets.DATABASE_MIGRATION_URL }}
+
+      - name: Apply committed migrations
+        run: pnpm db:migrate

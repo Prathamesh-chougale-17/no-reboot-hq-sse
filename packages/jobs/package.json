@@ -1,0 +1,22 @@
+{
+  "name": "@acme/jobs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@acme/config": "workspace:*",
+    "@acme/db": "workspace:*",
+    "@acme/shared": "workspace:*",
+    "bullmq": "catalog:",
+    "ioredis": "^5.8.1",
+    "zod": "catalog:"
+  },
+  "scripts": {
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec tsc --noEmit",
+    "test": "pnpm exec vitest run"
+  }
+}

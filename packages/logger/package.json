@@ -1,0 +1,19 @@
+{
+  "name": "@acme/logger",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "pino": "catalog:",
+    "pino-loki": "^3.0.0",
+    "pino-pretty": "catalog:"
+  },
+  "scripts": {
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec tsc --noEmit",
+    "test": "pnpm exec vitest run"
+  }
+}

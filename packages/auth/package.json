@@ -1,0 +1,27 @@
+{
+  "name": "@acme/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@acme/config": "workspace:*",
+    "@acme/db": "workspace:*",
+    "@acme/jobs": "workspace:*",
+    "@acme/shared": "workspace:*",
+    "@better-auth/drizzle-adapter": "catalog:auth",
+    "better-auth": "catalog:auth",
+    "nodemailer": "catalog:",
+    "resend": "^6.10.0"
+  },
+  "scripts": {
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec tsc --noEmit",
+    "test": "pnpm exec vitest run"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^8.0.0"
+  }
+}

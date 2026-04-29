@@ -1,0 +1,21 @@
+{
+  "name": "@acme/observability",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "catalog:observability",
+    "@opentelemetry/auto-instrumentations-node": "catalog:observability",
+    "@opentelemetry/exporter-trace-otlp-http": "catalog:observability",
+    "@opentelemetry/resources": "catalog:observability",
+    "@opentelemetry/sdk-node": "catalog:observability",
+    "@opentelemetry/semantic-conventions": "catalog:observability"
+  },
+  "scripts": {
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec tsc --noEmit"
+  }
+}

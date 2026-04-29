@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format-check:
+    name: format-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Check formatting
+        run: pnpm format:check
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Write CI env files
+        uses: ./.github/actions/write-ci-env
+      - name: Lint workspace
+        run: pnpm lint
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Write CI env files
+        uses: ./.github/actions/write-ci-env
+      - name: Typecheck workspace
+        run: pnpm typecheck
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Write CI env files
+        uses: ./.github/actions/write-ci-env
+      - name: Run unit and integration tests
+        run: pnpm test
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Write CI env files
+        uses: ./.github/actions/write-ci-env
+      - name: Build workspace
+        run: pnpm build
+
+  docker-validate:
+    name: docker-validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Validate docker compose configuration
+        run: docker compose config --quiet
+
+  e2e-smoke:
+    name: e2e-smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Restore Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run Playwright smoke tests
+        env:
+          CI: true
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+        run: pnpm test:e2e
+
+  db-verify:
+    name: db-verify
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: acme_platform
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d acme_platform"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Write CI env files
+        uses: ./.github/actions/write-ci-env
+        with:
+          database-url: postgres://postgres:postgres@localhost:5432/acme_platform
+      - name: Regenerate Better Auth schema
+        run: pnpm auth:generate
+      - name: Regenerate Drizzle artifacts
+        run: pnpm db:generate
+      - name: Check generated files are committed
+        run: git diff --exit-code -- packages/db/src/schema packages/db/drizzle
+      - name: Apply migrations to fresh Postgres
+        run: pnpm db:migrate
+
+  async-verify:
+    name: async-verify
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:8.2-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup monorepo
+        uses: ./.github/actions/setup-monorepo
+      - name: Write CI env files
+        uses: ./.github/actions/write-ci-env
+        with:
+          redis-url: redis://localhost:6379
+      - name: Run async job integration coverage
+        run: pnpm exec vitest run packages/jobs/src/domain-events.test.ts packages/jobs/src/queues.test.ts

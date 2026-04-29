@@ -1,0 +1,68 @@
+{
+  "name": "try",
+  "version": "1.0.1",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "start": "turbo run start --filter=@acme/web --filter=@acme/api",
+    "lint": "turbo run lint",
+    "query": "turbo query",
+    "query:packages": "turbo query ls",
+    "query:packages:affected": "turbo query ls --affected",
+    "query:affected": "turbo query affected",
+    "format": "pnpm exec prettier --write .",
+    "format:check": "pnpm exec prettier --check .",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test --filter=!@acme/web-e2e",
+    "test:e2e": "pnpm --filter @acme/web-e2e run test:e2e",
+    "auth:generate": "pnpm exec dotenv -e apps/api/.env -e apps/web/.env -- auth generate --config packages/auth/src/server.ts --output packages/db/src/schema/auth.ts --yes && pnpm exec prettier --write packages/db/src/schema/auth.ts",
+    "db:generate": "pnpm exec dotenv -e apps/api/.env -- drizzle-kit generate --config=packages/db/drizzle.config.ts",
+    "db:migrate": "pnpm exec dotenv -e apps/api/.env -- tsx packages/db/src/migrate.ts",
+    "db:studio": "pnpm exec dotenv -e apps/api/.env -- drizzle-kit studio --config=packages/db/drizzle.config.ts",
+    "prepare": "node scripts/prepare.mjs"
+  },
+  "devDependencies": {
+    "@clack/prompts": "^1.2.0",
+    "@eslint/js": "^9.39.1",
+    "@next/eslint-plugin-next": "catalog:next",
+    "@playwright/test": "catalog:tooling",
+    "@types/node": "catalog:tooling",
+    "@types/react": "catalog:tooling",
+    "@types/react-dom": "catalog:tooling",
+    "@vitest/coverage-v8": "^4.1.4",
+    "auth": "catalog:auth",
+    "dotenv-cli": "^11.0.0",
+    "drizzle-kit": "catalog:database",
+    "eslint": "catalog:tooling",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-turbo": "^2.9.6",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.7.4",
+    "standard-version": "^9.5.0",
+    "tsup": "catalog:tooling",
+    "tsx": "^4.21.0",
+    "turbo": "^2.9.6",
+    "typescript": "catalog:tooling",
+    "typescript-eslint": "^8.58.1",
+    "vitest": "^4.1.4"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "pnpm exec prettier --write",
+      "pnpm exec eslint --fix"
+    ],
+    "*.{json,md,css,yml,yaml}": [
+      "pnpm exec prettier --write"
+    ]
+  },
+  "packageManager": "pnpm@10.17.0",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

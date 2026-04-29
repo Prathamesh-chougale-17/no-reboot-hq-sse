@@ -1,0 +1,36 @@
+{
+  "name": "@acme/api",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm exec dotenv -e .env -- tsx watch src/index.ts",
+    "build": "pnpm exec tsup --config tsup.config.ts",
+    "start": "pnpm exec dotenv -e .env -- node dist/index.cjs",
+    "start:worker": "pnpm exec dotenv -e .env -- node dist/worker.cjs",
+    "worker": "pnpm run start:worker",
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec tsc --noEmit",
+    "test": "pnpm exec vitest run"
+  },
+  "dependencies": {
+    "@acme/auth": "workspace:*",
+    "@acme/config": "workspace:*",
+    "@acme/db": "workspace:*",
+    "@acme/jobs": "workspace:*",
+    "@acme/logger": "workspace:*",
+    "@acme/observability": "workspace:*",
+    "@acme/shared": "workspace:*",
+    "@hono/node-server": "catalog:hono",
+    "@hono/zod-openapi": "catalog:hono",
+    "@hono/zod-validator": "catalog:hono",
+    "@opentelemetry/api": "catalog:observability",
+    "@scalar/hono-api-reference": "catalog:hono",
+    "@sentry/node": "catalog:observability",
+    "bullmq": "catalog:",
+    "hono": "catalog:hono",
+    "nodemailer": "catalog:",
+    "pino": "catalog:",
+    "pino-pretty": "catalog:",
+    "prom-client": "^15.1.3",
+    "zod": "catalog:"
+  }
+}

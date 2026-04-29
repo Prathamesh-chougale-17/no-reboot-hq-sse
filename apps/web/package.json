@@ -1,0 +1,40 @@
+{
+  "name": "@acme/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm exec dotenv -e ../api/.env -e .env -- next dev --port 3000",
+    "build": "pnpm exec dotenv -e ../api/.env -e .env -- next build",
+    "start": "pnpm exec dotenv -e ../api/.env -e .env -- next start --port 3000",
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec next typegen && pnpm exec tsc --noEmit"
+  },
+  "dependencies": {
+    "@acme/auth": "workspace:*",
+    "@acme/config": "workspace:*",
+    "@acme/db": "workspace:*",
+    "@acme/jobs": "workspace:*",
+    "@acme/shared": "workspace:*",
+    "@acme/ui": "workspace:*",
+    "@sentry/nextjs": "catalog:observability",
+    "@tanstack/react-query": "^5.99.0",
+    "better-auth": "catalog:auth",
+    "next": "catalog:next",
+    "next-themes": "catalog:",
+    "react": "catalog:react",
+    "react-dom": "catalog:react",
+    "shadcn": "catalog:",
+    "tw-animate-css": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "catalog:tailwind",
+    "@types/node": "catalog:tooling",
+    "@types/react": "catalog:tooling",
+    "@types/react-dom": "catalog:tooling",
+    "eslint": "catalog:tooling",
+    "eslint-config-next": "catalog:next",
+    "tailwindcss": "catalog:tailwind",
+    "typescript": "catalog:tooling"
+  }
+}
