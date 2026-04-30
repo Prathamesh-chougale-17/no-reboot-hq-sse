@@ -4,6 +4,12 @@ No Reboot HQ is a production-grade dynamic configuration control plane. It lets 
 
 The project is intentionally built like a real backend platform, not a toy feature flag demo. It includes an authenticated dashboard, service-token client APIs, durable event delivery, worker-driven outbox publishing, live SSE reloads, and a full local observability stack.
 
+## Built From The Scaffold
+
+No Reboot HQ was built on top of the `create-acme-platform` scaffold. That CLI work came first: it gave this repository its monorepo shape, package boundaries, release tooling, shared configs, Docker infrastructure, and production-minded defaults.
+
+Because the scaffold already handled the heavy platform foundation, this project could move faster into the interesting product layer: dynamic config, durable propagation, service tokens, live simulation, and observability. In that sense, No Reboot HQ is both a product and a proof of what the scaffold makes possible.
+
 ## The Pitch
 
 Modern services need to change behavior while they are running. A payment service might need a feature flag flipped, a rollout percentage changed, or a secret rotated. Doing that safely means more than editing a JSON file.
