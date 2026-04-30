@@ -1,19 +1,19 @@
-import { HealthDtoSchema } from '@acme/shared';
-import { z } from '@hono/zod-openapi';
+import { HealthDtoSchema } from "@acme/shared";
+import { z } from "@hono/zod-openapi";
 
 const ErrorCodeSchema = z
   .enum([
-    'BAD_REQUEST',
-    'CONFLICT',
-    'FORBIDDEN',
-    'INTERNAL_ERROR',
-    'NOT_FOUND',
-    'SERVICE_UNAVAILABLE',
-    'UNAUTHORIZED',
-    'UPSTREAM_UNAVAILABLE',
-    'VALIDATION_ERROR',
+    "BAD_REQUEST",
+    "CONFLICT",
+    "FORBIDDEN",
+    "INTERNAL_ERROR",
+    "NOT_FOUND",
+    "SERVICE_UNAVAILABLE",
+    "UNAUTHORIZED",
+    "UPSTREAM_UNAVAILABLE",
+    "VALIDATION_ERROR",
   ])
-  .openapi('ApiErrorCode');
+  .openapi("ApiErrorCode");
 
 export const ApiMetaSchema = z
   .object({
@@ -22,7 +22,7 @@ export const ApiMetaSchema = z
     timestamp: z.iso.datetime(),
     version: z.string().optional(),
   })
-  .openapi('ApiMeta');
+  .openapi("ApiMeta");
 
 export const ApiErrorSchema = z
   .object({
@@ -30,7 +30,7 @@ export const ApiErrorSchema = z
     message: z.string(),
     details: z.unknown().optional(),
   })
-  .openapi('ApiError');
+  .openapi("ApiError");
 
 export const ApiFailureSchema = z
   .object({
@@ -38,14 +38,17 @@ export const ApiFailureSchema = z
     error: ApiErrorSchema,
     meta: ApiMetaSchema,
   })
-  .openapi('ApiFailure');
+  .openapi("ApiFailure");
 
-export const createSuccessEnvelopeSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
+export const createSuccessEnvelopeSchema = <T extends z.ZodTypeAny>(
+  dataSchema: T,
+) =>
   z.object({
     success: z.literal(true),
     data: dataSchema,
     meta: ApiMetaSchema,
   });
 
-export const HealthSuccessResponseSchema =
-  createSuccessEnvelopeSchema(HealthDtoSchema).openapi('HealthSuccessResponse');
+export const HealthSuccessResponseSchema = createSuccessEnvelopeSchema(
+  HealthDtoSchema,
+).openapi("HealthSuccessResponse");

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
-import { ResetPasswordInputSchema } from '@acme/shared';
-import { Button, Input } from '@acme/ui';
+import { ResetPasswordInputSchema } from "@acme/shared";
+import { Button, Input } from "@acme/ui";
 
-import { authClient } from '@/lib/auth-client';
+import { authClient } from "@/lib/auth-client";
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to reset your password.';
+  error instanceof Error ? error.message : "Unable to reset your password.";
 
 export function ResetPasswordForm({ token }: { token: string | undefined }) {
   const router = useRouter();
@@ -18,7 +18,9 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
 
   if (!token) {
     return (
-      <p className="text-sm text-red-600 dark:text-red-400">Reset token missing or expired.</p>
+      <p className="text-sm text-red-600 dark:text-red-400">
+        Reset token missing or expired.
+      </p>
     );
   }
 
@@ -34,7 +36,7 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
           try {
             const payload = ResetPasswordInputSchema.parse({
               token,
-              newPassword: formData.get('newPassword'),
+              newPassword: formData.get("newPassword"),
             });
             const response = (await authClient.resetPassword(payload)) as {
               error?: {
@@ -44,11 +46,11 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
             const resetError = response.error;
 
             if (resetError) {
-              setError(resetError.message ?? 'Unable to reset your password.');
+              setError(resetError.message ?? "Unable to reset your password.");
               return;
             }
 
-            router.push('/sign-in?reset=success' as never);
+            router.push("/sign-in?reset=success" as never);
             router.refresh();
           } catch (caughtError) {
             setError(getErrorMessage(caughtError));
@@ -71,9 +73,11 @@ export function ResetPasswordForm({ token }: { token: string | undefined }) {
           required
         />
       </div>
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Updating password...' : 'Reset password'}
+        {isPending ? "Updating password..." : "Reset password"}
       </Button>
     </form>
   );

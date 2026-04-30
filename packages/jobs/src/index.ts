@@ -1,2 +1,2 @@
-export * from './queues';
-export * from './domain-events';
+export * from "./queues";
+export * from "./domain-events";

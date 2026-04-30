@@ -1,11 +1,11 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-import { AuthShell } from '@/components/auth/auth-shell';
-import { SignInForm } from '@/components/auth/sign-in-form';
-import { getCurrentUser } from '@/lib/auth';
+import { AuthShell } from "@/components/auth/auth-shell";
+import { SignInForm } from "@/components/auth/sign-in-form";
+import { getCurrentUser } from "@/lib/auth";
 
 const getSafeRedirectTo = (value: string | undefined) =>
-  value && value.startsWith('/') && !value.startsWith('//') ? value : undefined;
+  value && value.startsWith("/") && !value.startsWith("//") ? value : undefined;
 
 export default async function SignInPage({
   searchParams,
@@ -17,13 +17,13 @@ export default async function SignInPage({
     searchParams ?? Promise.resolve(undefined),
   ]);
   const redirectTo = getSafeRedirectTo(
-    resolvedSearchParams && typeof resolvedSearchParams.redirectTo === 'string'
+    resolvedSearchParams && typeof resolvedSearchParams.redirectTo === "string"
       ? resolvedSearchParams.redirectTo
       : undefined,
   );
 
   if (currentUser) {
-    redirect((redirectTo ?? '/onboarding') as never);
+    redirect((redirectTo ?? "/onboarding") as never);
   }
 
   return (

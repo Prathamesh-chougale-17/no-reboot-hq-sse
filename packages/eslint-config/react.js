@@ -1,10 +1,10 @@
-import js from '@eslint/js';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import tseslint from 'typescript-eslint';
-import pluginReactHooks from 'eslint-plugin-react-hooks';
-import pluginReact from 'eslint-plugin-react';
-import globals from 'globals';
-import { config as baseConfig } from './base.js';
+import js from "@eslint/js";
+import eslintConfigPrettier from "eslint-config-prettier";
+import tseslint from "typescript-eslint";
+import pluginReactHooks from "eslint-plugin-react-hooks";
+import pluginReact from "eslint-plugin-react";
+import globals from "globals";
+import { config as baseConfig } from "./base.js";
 
 export const reactConfig = [
   ...baseConfig,
@@ -22,17 +22,17 @@ export const reactConfig = [
     },
     settings: {
       react: {
-        version: 'detect',
+        version: "detect",
       },
     },
   },
   {
     plugins: {
-      'react-hooks': pluginReactHooks,
+      "react-hooks": pluginReactHooks,
     },
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
-      'react/react-in-jsx-scope': 'off',
+      "react/react-in-jsx-scope": "off",
     },
   },
 ];

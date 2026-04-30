@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
-import type { OrganizationSummaryDto } from '@acme/shared';
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
+import type { OrganizationSummaryDto } from "@acme/shared";
 
 import {
   Alert,
@@ -14,12 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
   cn,
-} from '@acme/ui';
+} from "@acme/ui";
 
-import { authClient } from '@/lib/auth-client';
+import { authClient } from "@/lib/auth-client";
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to switch the active workspace right now.';
+  error instanceof Error
+    ? error.message
+    : "Unable to switch the active workspace right now.";
 
 export function OrganizationSwitcher({
   organizations: initialOrganizations,
@@ -50,26 +52,28 @@ export function OrganizationSwitcher({
   const activeOrganizationId =
     activeOrganizationQuery.data?.id ?? currentOrganizationId ?? undefined;
   const activeOrganizationName =
-    organizations.find((organization) => organization.id === activeOrganizationId)?.name ??
+    organizations.find(
+      (organization) => organization.id === activeOrganizationId,
+    )?.name ??
     activeOrganizationQuery.data?.name ??
     currentOrganizationName ??
     organizations[0]?.name ??
-    'Choose workspace';
-  const deniedTarget = searchParams.get('denied');
+    "Choose workspace";
+  const deniedTarget = searchParams.get("denied");
   const nextRoute = useMemo(() => {
-    if (deniedTarget?.startsWith('/')) {
+    if (deniedTarget?.startsWith("/")) {
       return deniedTarget;
     }
 
-    return pathname ?? '/users';
+    return pathname ?? "/users";
   }, [deniedTarget, pathname]);
 
   if (organizations.length <= 1) {
     return (
       <div
         className={cn(
-          'min-w-72 flex-col gap-1.5',
-          forceVisible ? 'flex' : 'hidden md:flex',
+          "min-w-72 flex-col gap-1.5",
+          forceVisible ? "flex" : "hidden md:flex",
           className,
         )}
       >
@@ -87,7 +91,11 @@ export function OrganizationSwitcher({
 
   return (
     <div
-      className={cn('min-w-72 flex-col gap-2', forceVisible ? 'flex' : 'hidden md:flex', className)}
+      className={cn(
+        "min-w-72 flex-col gap-2",
+        forceVisible ? "flex" : "hidden md:flex",
+        className,
+      )}
     >
       {showLabel ? (
         <span className="px-1 text-[11px] font-medium uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
@@ -117,7 +125,9 @@ export function OrganizationSwitcher({
               };
 
               if (response.error) {
-                setError(response.error.message ?? 'Unable to switch organization.');
+                setError(
+                  response.error.message ?? "Unable to switch organization.",
+                );
                 return;
               }
 
@@ -134,8 +144,8 @@ export function OrganizationSwitcher({
         <SelectTrigger className="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-none focus-visible:border-teal-500/40 focus-visible:ring-2 focus-visible:ring-teal-500/20 dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-300 dark:focus-visible:border-teal-400/40 dark:focus-visible:ring-teal-400/20">
           <SelectValue placeholder={currentOrganizationName}>
             {(value: string | null) =>
-              organizations.find((organization) => organization.id === value)?.name ??
-              activeOrganizationName
+              organizations.find((organization) => organization.id === value)
+                ?.name ?? activeOrganizationName
             }
           </SelectValue>
         </SelectTrigger>

@@ -1,11 +1,11 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-import { AuthShell } from '@/components/auth/auth-shell';
-import { SignUpForm } from '@/components/auth/sign-up-form';
-import { getCurrentUser } from '@/lib/auth';
+import { AuthShell } from "@/components/auth/auth-shell";
+import { SignUpForm } from "@/components/auth/sign-up-form";
+import { getCurrentUser } from "@/lib/auth";
 
 const getSafeRedirectTo = (value: string | undefined) =>
-  value && value.startsWith('/') && !value.startsWith('//') ? value : undefined;
+  value && value.startsWith("/") && !value.startsWith("//") ? value : undefined;
 
 export default async function SignUpPage({
   searchParams,
@@ -17,19 +17,20 @@ export default async function SignUpPage({
     searchParams ?? Promise.resolve(undefined),
   ]);
   const redirectTo = getSafeRedirectTo(
-    resolvedSearchParams && typeof resolvedSearchParams.redirectTo === 'string'
+    resolvedSearchParams && typeof resolvedSearchParams.redirectTo === "string"
       ? resolvedSearchParams.redirectTo
       : undefined,
   );
   const invitationId =
-    resolvedSearchParams && typeof resolvedSearchParams.invitationId === 'string'
+    resolvedSearchParams &&
+    typeof resolvedSearchParams.invitationId === "string"
       ? resolvedSearchParams.invitationId
       : undefined;
 
   const invitationRedirect = invitationId
     ? `/accept-invite?invitationId=${encodeURIComponent(invitationId)}`
     : undefined;
-  const signedInRedirect = redirectTo ?? invitationRedirect ?? '/onboarding';
+  const signedInRedirect = redirectTo ?? invitationRedirect ?? "/onboarding";
 
   if (currentUser) {
     redirect(signedInRedirect as never);

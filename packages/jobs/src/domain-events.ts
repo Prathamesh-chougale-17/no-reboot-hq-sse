@@ -1,10 +1,10 @@
-import type { ServerFeatureFlags } from '@acme/config';
-import type { AuditRepository, WebhookRepository } from '@acme/db';
-import type { AppendAuditLogInput } from '@acme/db';
-import type { AuditEventType } from '@acme/shared';
-import type { WebhookEventType } from '@acme/shared';
+import type { ServerFeatureFlags } from "@acme/config";
+import type { AuditRepository, WebhookRepository } from "@acme/db";
+import type { AppendAuditLogInput } from "@acme/db";
+import type { AuditEventType } from "@acme/shared";
+import type { WebhookEventType } from "@acme/shared";
 
-import { enqueueWebhookDeliveryJob } from './queues';
+import { enqueueWebhookDeliveryJob } from "./queues";
 
 export type OrganizationAccessEventInput = {
   organizationId: string;
@@ -59,8 +59,8 @@ export const recordOrganizationAccessEvent = async ({
   );
 
   for (const [index, result] of enqueueResults.entries()) {
-    if (result.status === 'rejected') {
-      console.error('[jobs] failed to enqueue webhook delivery', {
+    if (result.status === "rejected") {
+      console.error("[jobs] failed to enqueue webhook delivery", {
         deliveryId: deliveries[index]?.id,
         error: result.reason,
       });

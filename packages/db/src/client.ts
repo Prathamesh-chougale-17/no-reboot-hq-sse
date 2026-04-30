@@ -1,9 +1,9 @@
-import postgres from 'postgres';
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+import postgres from "postgres";
+import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 
-import { loadDbEnv } from '@acme/config';
+import { loadDbEnv } from "@acme/config";
 
-import * as schema from './schema';
+import * as schema from "./schema";
 
 type Database = PostgresJsDatabase<typeof schema>;
 

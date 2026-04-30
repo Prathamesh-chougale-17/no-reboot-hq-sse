@@ -1,7 +1,7 @@
-import { resolveAuthContext, requireRole, requireSession } from '@acme/auth';
-import type { CurrentUserDto } from '@acme/shared';
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { resolveAuthContext, requireRole, requireSession } from "@acme/auth";
+import type { CurrentUserDto } from "@acme/shared";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 const getRequestHeaders = async () => new Headers(await headers());
 
@@ -31,7 +31,9 @@ const toCurrentUserDto = (
 export const getCurrentUser = async (): Promise<CurrentUserDto | null> =>
   toCurrentUserDto(await resolveAuthContext(await getRequestHeaders()));
 
-export const getRequiredUser = async (redirectTo = '/users'): Promise<CurrentUserDto> => {
+export const getRequiredUser = async (
+  redirectTo = "/users",
+): Promise<CurrentUserDto> => {
   try {
     return toCurrentUserDto(await requireSession(await getRequestHeaders()))!;
   } catch {
@@ -41,10 +43,12 @@ export const getRequiredUser = async (redirectTo = '/users'): Promise<CurrentUse
 
 export const getRequiredRoleUser = async (
   roles: Parameters<typeof requireRole>[1],
-  redirectTo = '/users',
+  redirectTo = "/users",
 ): Promise<CurrentUserDto> => {
   try {
-    return toCurrentUserDto(await requireRole(await getRequestHeaders(), roles))!;
+    return toCurrentUserDto(
+      await requireRole(await getRequestHeaders(), roles),
+    )!;
   } catch {
     redirect(`/users?denied=${encodeURIComponent(redirectTo)}` as never);
   }

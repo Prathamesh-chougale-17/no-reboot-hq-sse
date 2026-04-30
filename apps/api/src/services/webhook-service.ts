@@ -1,14 +1,18 @@
-import type { WebhookRepository } from '@acme/db';
+import type { WebhookRepository } from "@acme/db";
 import type {
   CreateWebhookEndpointInput,
   CreateWebhookEndpointResultDto,
   DeleteWebhookEndpointResultDto,
   WebhookEndpointListDto,
-} from '@acme/shared';
-import { canManageMembers, type ResolvedAuthContext } from '@acme/auth';
+} from "@acme/shared";
+import { canManageMembers, type ResolvedAuthContext } from "@acme/auth";
 
-import { AppError } from '../lib/http';
-import { encryptWebhookSecret, generateWebhookSecret, hashWebhookSecret } from '../lib/webhooks';
+import { AppError } from "../lib/http";
+import {
+  encryptWebhookSecret,
+  generateWebhookSecret,
+  hashWebhookSecret,
+} from "../lib/webhooks";
 
 export class WebhookService {
   constructor(
@@ -16,24 +20,28 @@ export class WebhookService {
     private readonly webhookSecretSeed: string,
   ) {}
 
-  async listEndpoints(authContext: ResolvedAuthContext): Promise<WebhookEndpointListDto> {
+  async listEndpoints(
+    authContext: ResolvedAuthContext,
+  ): Promise<WebhookEndpointListDto> {
     if (!authContext.organizationId) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'An active organization is required to manage outgoing webhooks',
+        "FORBIDDEN",
+        "An active organization is required to manage outgoing webhooks",
       );
     }
 
     if (!canManageMembers(authContext.role)) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'Only owners and admins can manage organization webhooks',
+        "FORBIDDEN",
+        "Only owners and admins can manage organization webhooks",
       );
     }
 
-    return this.webhookRepository.listOrganizationWebhookEndpoints(authContext.organizationId);
+    return this.webhookRepository.listOrganizationWebhookEndpoints(
+      authContext.organizationId,
+    );
   }
 
   async createEndpoint(
@@ -43,16 +51,16 @@ export class WebhookService {
     if (!authContext.organizationId) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'An active organization is required to manage outgoing webhooks',
+        "FORBIDDEN",
+        "An active organization is required to manage outgoing webhooks",
       );
     }
 
     if (!canManageMembers(authContext.role)) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'Only owners and admins can manage organization webhooks',
+        "FORBIDDEN",
+        "Only owners and admins can manage organization webhooks",
       );
     }
 
@@ -63,7 +71,10 @@ export class WebhookService {
       eventTypes: input.eventTypes,
       createdBy: authContext.user.id,
       secretHash: hashWebhookSecret(signingSecret),
-      secretCiphertext: encryptWebhookSecret(signingSecret, this.webhookSecretSeed),
+      secretCiphertext: encryptWebhookSecret(
+        signingSecret,
+        this.webhookSecretSeed,
+      ),
     });
 
     return {
@@ -79,16 +90,16 @@ export class WebhookService {
     if (!authContext.organizationId) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'An active organization is required to manage outgoing webhooks',
+        "FORBIDDEN",
+        "An active organization is required to manage outgoing webhooks",
       );
     }
 
     if (!canManageMembers(authContext.role)) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'Only owners and admins can manage organization webhooks',
+        "FORBIDDEN",
+        "Only owners and admins can manage organization webhooks",
       );
     }
 
@@ -98,7 +109,7 @@ export class WebhookService {
     );
 
     if (!deleted) {
-      throw new AppError(404, 'NOT_FOUND', 'Webhook endpoint not found');
+      throw new AppError(404, "NOT_FOUND", "Webhook endpoint not found");
     }
 
     return {

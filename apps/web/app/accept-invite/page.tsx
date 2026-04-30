@@ -1,6 +1,6 @@
-import { AuthShell } from '@/components/auth/auth-shell';
-import { AcceptInvitePanel } from '@/components/auth/accept-invite-panel';
-import { getCurrentUser } from '@/lib/auth';
+import { AuthShell } from "@/components/auth/auth-shell";
+import { AcceptInvitePanel } from "@/components/auth/accept-invite-panel";
+import { getCurrentUser } from "@/lib/auth";
 
 export default async function AcceptInvitePage({
   searchParams,
@@ -12,7 +12,8 @@ export default async function AcceptInvitePage({
     searchParams ?? Promise.resolve(undefined),
   ]);
   const invitationId =
-    resolvedSearchParams && typeof resolvedSearchParams.invitationId === 'string'
+    resolvedSearchParams &&
+    typeof resolvedSearchParams.invitationId === "string"
       ? resolvedSearchParams.invitationId
       : undefined;
 

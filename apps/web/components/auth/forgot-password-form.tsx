@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition } from "react";
 
-import { ForgotPasswordInputSchema } from '@acme/shared';
-import { Button, Input } from '@acme/ui';
+import { ForgotPasswordInputSchema } from "@acme/shared";
+import { Button, Input } from "@acme/ui";
 
-import { authClient } from '@/lib/auth-client';
+import { authClient } from "@/lib/auth-client";
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to send reset instructions.';
+  error instanceof Error ? error.message : "Unable to send reset instructions.";
 
 export function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null);
@@ -27,10 +27,12 @@ export function ForgotPasswordForm() {
         startTransition(async () => {
           try {
             const payload = ForgotPasswordInputSchema.parse({
-              email: formData.get('email'),
+              email: formData.get("email"),
               redirectTo: `${window.location.origin}/reset-password`,
             });
-            const response = (await authClient.requestPasswordReset(payload)) as {
+            const response = (await authClient.requestPasswordReset(
+              payload,
+            )) as {
               error?: {
                 message?: string;
               } | null;
@@ -38,11 +40,15 @@ export function ForgotPasswordForm() {
             const requestError = response.error;
 
             if (requestError) {
-              setError(requestError.message ?? 'Unable to send reset instructions.');
+              setError(
+                requestError.message ?? "Unable to send reset instructions.",
+              );
               return;
             }
 
-            setNotice('Password reset instructions were sent if the account exists.');
+            setNotice(
+              "Password reset instructions were sent if the account exists.",
+            );
           } catch (caughtError) {
             setError(getErrorMessage(caughtError));
           }
@@ -56,12 +62,24 @@ export function ForgotPasswordForm() {
         >
           Account email
         </label>
-        <Input id="forgot-email" name="email" type="email" placeholder="jane@acme.com" required />
+        <Input
+          id="forgot-email"
+          name="email"
+          type="email"
+          placeholder="jane@acme.com"
+          required
+        />
       </div>
-      {notice ? <p className="text-sm text-emerald-700 dark:text-emerald-300">{notice}</p> : null}
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {notice ? (
+        <p className="text-sm text-emerald-700 dark:text-emerald-300">
+          {notice}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Sending reset link...' : 'Send reset link'}
+        {isPending ? "Sending reset link..." : "Send reset link"}
       </Button>
     </form>
   );

@@ -1,10 +1,10 @@
-import * as Sentry from '@sentry/node';
-import { serve } from '@hono/node-server';
-import { loadApiEnv } from '@acme/config';
-import { createLogger } from '@acme/logger';
-import { startObservability, stopObservability } from '@acme/observability';
+import * as Sentry from "@sentry/node";
+import { serve } from "@hono/node-server";
+import { loadApiEnv } from "@acme/config";
+import { createLogger } from "@acme/logger";
+import { startObservability, stopObservability } from "@acme/observability";
 
-import { createApp } from './app';
+import { createApp } from "./app";
 
 const SERVER_SHUTDOWN_TIMEOUT_MS = 10_000;
 const SENTRY_FLUSH_TIMEOUT_MS = 2_000;
@@ -21,7 +21,7 @@ const bootstrapLogger = createLogger({
   environment: env.NODE_ENV,
   level: env.API_LOG_LEVEL,
   ...(env.LOKI_URL ? { lokiUrl: env.LOKI_URL } : {}),
-  enablePretty: env.NODE_ENV !== 'production',
+  enablePretty: env.NODE_ENV !== "production",
   enableLoki,
 });
 
@@ -31,7 +31,7 @@ bootstrapLogger.info(
     logToLoki: enableLoki,
     otlpEndpoint: env.OTEL_EXPORTER_OTLP_ENDPOINT,
   },
-  'bootstrapping api server',
+  "bootstrapping api server",
 );
 
 let server: GracefulServer | undefined;
@@ -94,7 +94,7 @@ const shutdown = async ({
   error?: unknown;
 }): Promise<void> => {
   if (shutdownPromise) {
-    bootstrapLogger.warn({ reason }, 'shutdown already in progress');
+    bootstrapLogger.warn({ reason }, "shutdown already in progress");
     return shutdownPromise;
   }
 
@@ -102,31 +102,43 @@ const shutdown = async ({
 
   shutdownPromise = (async () => {
     if (error) {
-      bootstrapLogger.error({ err: error, reason }, 'fatal error triggered shutdown');
+      bootstrapLogger.error(
+        { err: error, reason },
+        "fatal error triggered shutdown",
+      );
       Sentry.captureException(error);
     } else {
-      bootstrapLogger.info({ reason }, 'shutting down api server');
+      bootstrapLogger.info({ reason }, "shutting down api server");
     }
 
     try {
       await closeServer();
-      bootstrapLogger.info('http server closed');
+      bootstrapLogger.info("http server closed");
     } catch (shutdownError) {
-      bootstrapLogger.error({ err: shutdownError }, 'failed to close http server cleanly');
+      bootstrapLogger.error(
+        { err: shutdownError },
+        "failed to close http server cleanly",
+      );
     }
 
     try {
       await stopObservability();
-      bootstrapLogger.info('observability stopped');
+      bootstrapLogger.info("observability stopped");
     } catch (shutdownError) {
-      bootstrapLogger.error({ err: shutdownError }, 'failed to stop observability cleanly');
+      bootstrapLogger.error(
+        { err: shutdownError },
+        "failed to stop observability cleanly",
+      );
     }
 
     try {
       await Sentry.close(SENTRY_FLUSH_TIMEOUT_MS);
-      bootstrapLogger.info('sentry flushed');
+      bootstrapLogger.info("sentry flushed");
     } catch (shutdownError) {
-      bootstrapLogger.error({ err: shutdownError }, 'failed to flush sentry cleanly');
+      bootstrapLogger.error(
+        { err: shutdownError },
+        "failed to flush sentry cleanly",
+      );
     }
 
     bootstrapLogger.flush?.();
@@ -154,27 +166,27 @@ const main = async () => {
         {
           port: info.port,
         },
-        'api server started',
+        "api server started",
       );
     },
   ) as GracefulServer;
 };
 
-process.on('SIGINT', () => {
-  void shutdown({ reason: 'SIGINT', exitCode: 0 });
+process.on("SIGINT", () => {
+  void shutdown({ reason: "SIGINT", exitCode: 0 });
 });
 
-process.on('SIGTERM', () => {
-  void shutdown({ reason: 'SIGTERM', exitCode: 0 });
+process.on("SIGTERM", () => {
+  void shutdown({ reason: "SIGTERM", exitCode: 0 });
 });
 
-process.on('uncaughtException', (error) => {
-  void shutdown({ reason: 'uncaughtException', exitCode: 1, error });
+process.on("uncaughtException", (error) => {
+  void shutdown({ reason: "uncaughtException", exitCode: 1, error });
 });
 
-process.on('unhandledRejection', (reason) => {
+process.on("unhandledRejection", (reason) => {
   void shutdown({
-    reason: 'unhandledRejection',
+    reason: "unhandledRejection",
     exitCode: 1,
     error: reason instanceof Error ? reason : new Error(String(reason)),
   });
@@ -184,7 +196,7 @@ const start = async () => {
   try {
     await main();
   } catch (error) {
-    await shutdown({ reason: 'startupFailure', exitCode: 1, error });
+    await shutdown({ reason: "startupFailure", exitCode: 1, error });
   }
 };
 

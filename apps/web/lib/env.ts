@@ -1,4 +1,4 @@
-import { loadWebEnv } from '@acme/config';
+import { loadWebEnv } from "@acme/config";
 
 export const publicEnv = loadWebEnv({
   NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,

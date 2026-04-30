@@ -1,13 +1,13 @@
 export type ErrorCode =
-  | 'BAD_REQUEST'
-  | 'CONFLICT'
-  | 'FORBIDDEN'
-  | 'INTERNAL_ERROR'
-  | 'NOT_FOUND'
-  | 'SERVICE_UNAVAILABLE'
-  | 'UNAUTHORIZED'
-  | 'UPSTREAM_UNAVAILABLE'
-  | 'VALIDATION_ERROR';
+  | "BAD_REQUEST"
+  | "CONFLICT"
+  | "FORBIDDEN"
+  | "INTERNAL_ERROR"
+  | "NOT_FOUND"
+  | "SERVICE_UNAVAILABLE"
+  | "UNAUTHORIZED"
+  | "UPSTREAM_UNAVAILABLE"
+  | "VALIDATION_ERROR";
 
 export type ApiMeta = {
   requestId?: string;
@@ -41,13 +41,19 @@ export const createApiMeta = (meta: Partial<ApiMeta> = {}): ApiMeta => ({
   ...meta,
 });
 
-export const success = <T>(data: T, meta: Partial<ApiMeta> = {}): ApiSuccess<T> => ({
+export const success = <T>(
+  data: T,
+  meta: Partial<ApiMeta> = {},
+): ApiSuccess<T> => ({
   success: true,
   data,
   meta: createApiMeta(meta),
 });
 
-export const failure = (error: ApiError, meta: Partial<ApiMeta> = {}): ApiFailure => ({
+export const failure = (
+  error: ApiError,
+  meta: Partial<ApiMeta> = {},
+): ApiFailure => ({
   success: false,
   error,
   meta: createApiMeta(meta),

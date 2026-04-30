@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useState } from 'react';
+import Link from "next/link";
+import { useState } from "react";
 
 import {
   Alert,
@@ -19,19 +19,19 @@ import {
   SelectTrigger,
   SelectValue,
   Skeleton,
-} from '@acme/ui';
+} from "@acme/ui";
 import type {
   AuditLogEntryDto,
   AuthRole,
   CreateInvitationInput,
   CurrentUserDto,
-} from '@acme/shared';
+} from "@acme/shared";
 
-import { ApiClientError, apiClient } from '@/lib/api-client';
-import { useAuditLogsQuery, useUsersWorkspaceQuery } from '@/lib/queries';
+import { ApiClientError, apiClient } from "@/lib/api-client";
+import { useAuditLogsQuery, useUsersWorkspaceQuery } from "@/lib/queries";
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to complete the request';
+  error instanceof Error ? error.message : "Unable to complete the request";
 
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
 
@@ -40,40 +40,40 @@ const getInitials = (value: string) =>
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 
-const memberRoleVariant: Record<string, 'default' | 'secondary' | 'outline'> = {
-  owner: 'default',
-  admin: 'secondary',
-  member: 'outline',
+const memberRoleVariant: Record<string, "default" | "secondary" | "outline"> = {
+  owner: "default",
+  admin: "secondary",
+  member: "outline",
 };
 
 const canManageMembers = (role: AuthRole | null | undefined) =>
-  role === 'owner' || role === 'admin';
+  role === "owner" || role === "admin";
 
 const isRequestTimeoutError = (error: unknown) =>
-  error instanceof ApiClientError && error.code === 'REQUEST_TIMEOUT';
+  error instanceof ApiClientError && error.code === "REQUEST_TIMEOUT";
 
 const getActorLabel = (entry: AuditLogEntryDto) =>
-  entry.actor?.name ?? entry.actor?.email ?? entry.targetEmail ?? 'A teammate';
+  entry.actor?.name ?? entry.actor?.email ?? entry.targetEmail ?? "A teammate";
 
 const getAuditSummary = (entry: AuditLogEntryDto) => {
   const invitedRole =
-    entry.metadata && typeof entry.metadata.invitedRole === 'string'
+    entry.metadata && typeof entry.metadata.invitedRole === "string"
       ? entry.metadata.invitedRole
-      : 'member';
+      : "member";
   const organizationName =
-    entry.metadata && typeof entry.metadata.organizationName === 'string'
+    entry.metadata && typeof entry.metadata.organizationName === "string"
       ? entry.metadata.organizationName
-      : 'this organization';
+      : "this organization";
 
   switch (entry.eventType) {
-    case 'organization.created':
+    case "organization.created":
       return `${getActorLabel(entry)} created ${organizationName}.`;
-    case 'invitation.created':
-      return `${getActorLabel(entry)} invited ${entry.targetEmail ?? 'a teammate'} as ${invitedRole}.`;
-    case 'invitation.accepted':
+    case "invitation.created":
+      return `${getActorLabel(entry)} invited ${entry.targetEmail ?? "a teammate"} as ${invitedRole}.`;
+    case "invitation.accepted":
       return `${getActorLabel(entry)} accepted the invitation as ${invitedRole}.`;
     default:
       return `${getActorLabel(entry)} completed an organization change.`;
@@ -81,28 +81,30 @@ const getAuditSummary = (entry: AuditLogEntryDto) => {
 };
 
 const pageHeaderClassName =
-  'flex flex-col gap-4 border-b border-slate-200 pb-5 pt-3 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between';
+  "flex flex-col gap-4 border-b border-slate-200 pb-5 pt-3 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between";
 const eyebrowClassName =
-  'text-xs font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400';
+  "text-xs font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400";
 const pageTitleClassName =
-  'mt-1 text-4xl font-semibold leading-none text-slate-950 dark:text-slate-50 md:text-6xl';
+  "mt-1 text-4xl font-semibold leading-none text-slate-950 dark:text-slate-50 md:text-6xl";
 const pageSubtitleClassName =
-  'mt-3 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300';
+  "mt-3 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300";
 const metricClassName =
-  'rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none';
+  "rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none";
 const metricLabelClassName =
-  'text-xs font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400';
+  "text-xs font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400";
 const metricValueClassName =
-  'mt-2 text-3xl font-semibold leading-none text-slate-950 dark:text-slate-50';
+  "mt-2 text-3xl font-semibold leading-none text-slate-950 dark:text-slate-50";
 const panelClassName =
-  'rounded-xl border border-slate-200 bg-white/85 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none';
+  "rounded-xl border border-slate-200 bg-white/85 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none";
 const panelHeaderClassName =
-  'flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800';
-const panelBodyClassName = 'p-4';
-const sectionTitleClassName = 'text-base font-semibold text-slate-950 dark:text-slate-50';
-const sectionCopyClassName = 'mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400';
+  "flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800";
+const panelBodyClassName = "p-4";
+const sectionTitleClassName =
+  "text-base font-semibold text-slate-950 dark:text-slate-50";
+const sectionCopyClassName =
+  "mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400";
 const dataRowClassName =
-  'flex items-center justify-between gap-4 border-b border-slate-200 px-4 py-3 last:border-b-0 dark:border-slate-800';
+  "flex items-center justify-between gap-4 border-b border-slate-200 px-4 py-3 last:border-b-0 dark:border-slate-800";
 
 export function UsersWorkspace({
   viewer,
@@ -112,13 +114,15 @@ export function UsersWorkspace({
   deniedRoute?: string | undefined;
 }) {
   const [inviteForm, setInviteForm] = useState<CreateInvitationInput>({
-    email: '',
-    role: 'member',
+    email: "",
+    role: "member",
   });
   const [notice, setNotice] = useState<string | null>(null);
   const [setupError, setSetupError] = useState<string | null>(null);
   const [isInviting, setIsInviting] = useState(false);
-  const workspaceQuery = useUsersWorkspaceQuery(Boolean(viewer.organization?.id));
+  const workspaceQuery = useUsersWorkspaceQuery(
+    Boolean(viewer.organization?.id),
+  );
 
   const workspace = workspaceQuery.data;
   const effectiveViewer = workspace?.viewer ?? viewer;
@@ -129,7 +133,9 @@ export function UsersWorkspace({
     25,
     Boolean(viewer.organization?.id && canInviteMembers),
   );
-  const errorMessage = workspaceQuery.isError ? getErrorMessage(workspaceQuery.error) : null;
+  const errorMessage = workspaceQuery.isError
+    ? getErrorMessage(workspaceQuery.error)
+    : null;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -141,7 +147,7 @@ export function UsersWorkspace({
       setIsInviting(true);
       await apiClient.createInvitation(submittedInvite);
 
-      setInviteForm({ email: '', role: 'member' });
+      setInviteForm({ email: "", role: "member" });
       setNotice(`Invitation queued for ${submittedInvite.email}`);
       await Promise.all([workspaceQuery.refetch(), auditLogsQuery.refetch()]);
     } catch (error) {
@@ -153,12 +159,13 @@ export function UsersWorkspace({
         const refreshedInvitations = workspaceResult.data?.invitations ?? [];
         const matchingInvitation = refreshedInvitations.find(
           (invitation) =>
-            normalizeEmail(invitation.email) === normalizeEmail(submittedInvite.email) &&
+            normalizeEmail(invitation.email) ===
+              normalizeEmail(submittedInvite.email) &&
             invitation.role === submittedInvite.role,
         );
 
         if (matchingInvitation) {
-          setInviteForm({ email: '', role: 'member' });
+          setInviteForm({ email: "", role: "member" });
           setNotice(`Invitation queued for ${submittedInvite.email}`);
           setSetupError(null);
           return;
@@ -181,7 +188,8 @@ export function UsersWorkspace({
             <p className={eyebrowClassName}>Workspace Required</p>
             <h1 className={pageTitleClassName}>Finish onboarding</h1>
             <p className={pageSubtitleClassName}>
-              Choose an invited workspace or create your first workspace before managing teammates.
+              Choose an invited workspace or create your first workspace before
+              managing teammates.
             </p>
           </div>
         </section>
@@ -189,9 +197,12 @@ export function UsersWorkspace({
         <Alert>
           <AlertTitle>No active workspace selected</AlertTitle>
           <AlertDescription>
-            <Link className="font-semibold text-teal-700 dark:text-teal-300" href="/onboarding">
+            <Link
+              className="font-semibold text-teal-700 dark:text-teal-300"
+              href="/onboarding"
+            >
               Continue onboarding
-            </Link>{' '}
+            </Link>{" "}
             to activate the right workspace for this session.
           </AlertDescription>
         </Alert>
@@ -205,15 +216,20 @@ export function UsersWorkspace({
         <div>
           <p className={eyebrowClassName}>Organization Members</p>
           <h1 className={pageTitleClassName}>
-            {canInviteMembers ? 'Team access' : 'Workspace directory'}
+            {canInviteMembers ? "Team access" : "Workspace directory"}
           </h1>
           <p className={pageSubtitleClassName}>
-            {activeOrganization.name} is the active organization for this session.
+            {activeOrganization.name} is the active organization for this
+            session.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={memberRoleVariant[effectiveViewer.role ?? 'member'] ?? 'outline'}>
-            {effectiveViewer.role ?? 'member'}
+          <Badge
+            variant={
+              memberRoleVariant[effectiveViewer.role ?? "member"] ?? "outline"
+            }
+          >
+            {effectiveViewer.role ?? "member"}
           </Badge>
           <Button
             variant="secondary"
@@ -224,7 +240,9 @@ export function UsersWorkspace({
               ])
             }
           >
-            {workspaceQuery.isFetching && !workspaceQuery.isPending ? 'Refreshing' : 'Refresh'}
+            {workspaceQuery.isFetching && !workspaceQuery.isPending
+              ? "Refreshing"
+              : "Refresh"}
           </Button>
         </div>
       </section>
@@ -240,7 +258,9 @@ export function UsersWorkspace({
         </div>
         <div className={metricClassName}>
           <p className={metricLabelClassName}>Access mode</p>
-          <p className={metricValueClassName}>{canInviteMembers ? 'Manage' : 'Read'}</p>
+          <p className={metricValueClassName}>
+            {canInviteMembers ? "Manage" : "Read"}
+          </p>
         </div>
       </section>
 
@@ -248,9 +268,9 @@ export function UsersWorkspace({
         <Alert variant="destructive">
           <AlertTitle>Access denied for {deniedRoute}</AlertTitle>
           <AlertDescription>
-            Your role is <strong>{effectiveViewer.role ?? 'member'}</strong> in{' '}
-            <strong>{activeOrganization.name}</strong>. Switch workspace if you need owner or admin
-            access.
+            Your role is <strong>{effectiveViewer.role ?? "member"}</strong> in{" "}
+            <strong>{activeOrganization.name}</strong>. Switch workspace if you
+            need owner or admin access.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -260,12 +280,12 @@ export function UsersWorkspace({
           <div className={panelHeaderClassName}>
             <div>
               <h2 className={sectionTitleClassName}>
-                {canInviteMembers ? 'Invite Teammate' : 'Current Access'}
+                {canInviteMembers ? "Invite Teammate" : "Current Access"}
               </h2>
               <p className={sectionCopyClassName}>
                 {canInviteMembers
-                  ? 'Owners and admins can add members to the active organization.'
-                  : 'Member management is limited to owners and admins.'}
+                  ? "Owners and admins can add members to the active organization."
+                  : "Member management is limited to owners and admins."}
               </p>
             </div>
           </div>
@@ -286,7 +306,10 @@ export function UsersWorkspace({
                       type="email"
                       value={inviteForm.email}
                       onChange={(event) =>
-                        setInviteForm((current) => ({ ...current, email: event.target.value }))
+                        setInviteForm((current) => ({
+                          ...current,
+                          email: event.target.value,
+                        }))
                       }
                     />
                   </div>
@@ -304,7 +327,7 @@ export function UsersWorkspace({
 
                         setInviteForm((current) => ({
                           ...current,
-                          role: value as CreateInvitationInput['role'],
+                          role: value as CreateInvitationInput["role"],
                         }));
                       }}
                     >
@@ -319,8 +342,12 @@ export function UsersWorkspace({
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button type="submit" className="w-full" disabled={isInviting}>
-                    {isInviting ? 'Sending invitation' : 'Send invitation'}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isInviting}
+                  >
+                    {isInviting ? "Sending invitation" : "Send invitation"}
                   </Button>
                 </form>
                 {notice ? (
@@ -332,7 +359,9 @@ export function UsersWorkspace({
                 {(setupError ?? errorMessage) ? (
                   <Alert variant="destructive">
                     <AlertTitle>Unable to send invitation</AlertTitle>
-                    <AlertDescription>{setupError ?? errorMessage}</AlertDescription>
+                    <AlertDescription>
+                      {setupError ?? errorMessage}
+                    </AlertDescription>
                   </Alert>
                 ) : null}
               </div>
@@ -340,7 +369,8 @@ export function UsersWorkspace({
               <Alert>
                 <AlertTitle>Member access is active</AlertTitle>
                 <AlertDescription>
-                  You can view teammates in this organization. Invitation management is restricted.
+                  You can view teammates in this organization. Invitation
+                  management is restricted.
                 </AlertDescription>
               </Alert>
             )}
@@ -351,7 +381,9 @@ export function UsersWorkspace({
           <div className={panelHeaderClassName}>
             <div>
               <h2 className={sectionTitleClassName}>Members</h2>
-              <p className={sectionCopyClassName}>Loaded from the protected Hono service layer.</p>
+              <p className={sectionCopyClassName}>
+                Loaded from the protected Hono service layer.
+              </p>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -365,7 +397,9 @@ export function UsersWorkspace({
               <div className="p-4">
                 <Alert variant="destructive">
                   <AlertTitle>Unable to load members</AlertTitle>
-                  <AlertDescription>{getErrorMessage(workspaceQuery.error)}</AlertDescription>
+                  <AlertDescription>
+                    {getErrorMessage(workspaceQuery.error)}
+                  </AlertDescription>
                 </Alert>
               </div>
             ) : members.length === 0 ? (
@@ -373,7 +407,8 @@ export function UsersWorkspace({
                 <Alert>
                   <AlertTitle>No members yet</AlertTitle>
                   <AlertDescription>
-                    Invite the first teammate to start building inside this organization.
+                    Invite the first teammate to start building inside this
+                    organization.
                   </AlertDescription>
                 </Alert>
               </div>
@@ -388,12 +423,17 @@ export function UsersWorkspace({
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
                   {members.map((member) => (
-                    <tr key={member.id} className="bg-white dark:bg-slate-950/60">
+                    <tr
+                      key={member.id}
+                      className="bg-white dark:bg-slate-950/60"
+                    >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <Avatar size="lg">
                             <AvatarFallback>
-                              {getInitials(member.user.name ?? member.user.email)}
+                              {getInitials(
+                                member.user.name ?? member.user.email,
+                              )}
                             </AvatarFallback>
                           </Avatar>
                           <span className="font-medium text-slate-950 dark:text-slate-50">
@@ -405,7 +445,9 @@ export function UsersWorkspace({
                         {member.user.email}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={memberRoleVariant[member.role] ?? 'outline'}>
+                        <Badge
+                          variant={memberRoleVariant[member.role] ?? "outline"}
+                        >
                           {member.role}
                         </Badge>
                       </td>
@@ -449,7 +491,11 @@ export function UsersWorkspace({
                       Expires {new Date(invitation.expiresAt).toLocaleString()}
                     </p>
                   </div>
-                  <Badge variant={invitation.role === 'admin' ? 'secondary' : 'outline'}>
+                  <Badge
+                    variant={
+                      invitation.role === "admin" ? "secondary" : "outline"
+                    }
+                  >
                     {invitation.role}
                   </Badge>
                 </div>
@@ -461,7 +507,8 @@ export function UsersWorkspace({
             <Alert>
               <AlertTitle>Invitation visibility is restricted</AlertTitle>
               <AlertDescription>
-                Owners and admins can review pending invitations for this organization.
+                Owners and admins can review pending invitations for this
+                organization.
               </AlertDescription>
             </Alert>
           </div>
@@ -473,7 +520,9 @@ export function UsersWorkspace({
           <div className={panelHeaderClassName}>
             <div>
               <h2 className={sectionTitleClassName}>Audit Activity</h2>
-              <p className={sectionCopyClassName}>Recent organization access changes.</p>
+              <p className={sectionCopyClassName}>
+                Recent organization access changes.
+              </p>
             </div>
           </div>
           <div>
@@ -487,7 +536,9 @@ export function UsersWorkspace({
               <div className={panelBodyClassName}>
                 <Alert variant="destructive">
                   <AlertTitle>Unable to load audit activity</AlertTitle>
-                  <AlertDescription>{getErrorMessage(auditLogsQuery.error)}</AlertDescription>
+                  <AlertDescription>
+                    {getErrorMessage(auditLogsQuery.error)}
+                  </AlertDescription>
                 </Alert>
               </div>
             ) : auditLogsQuery.data?.items.length ? (
@@ -509,7 +560,8 @@ export function UsersWorkspace({
                 <Alert>
                   <AlertTitle>No audit activity yet</AlertTitle>
                   <AlertDescription>
-                    Organization creation and invitation activity will appear here.
+                    Organization creation and invitation activity will appear
+                    here.
                   </AlertDescription>
                 </Alert>
               </div>

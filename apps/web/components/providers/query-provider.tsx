@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
 import {
   isServer,
   QueryClient,
   QueryClientProvider,
   type DefaultOptions,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 
-import { ApiClientError } from '@/lib/api-client';
+import { ApiClientError } from "@/lib/api-client";
 
 const defaultQueryOptions: DefaultOptions = {
   queries: {
@@ -15,7 +15,11 @@ const defaultQueryOptions: DefaultOptions = {
     gcTime: 5 * 60_000,
     refetchOnWindowFocus: false,
     retry(failureCount, error) {
-      if (error instanceof ApiClientError && error.status >= 400 && error.status < 500) {
+      if (
+        error instanceof ApiClientError &&
+        error.status >= 400 &&
+        error.status < 500
+      ) {
         return false;
       }
 
@@ -44,5 +48,9 @@ const getQueryClient = () => {
 };
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  return <QueryClientProvider client={getQueryClient()}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={getQueryClient()}>
+      {children}
+    </QueryClientProvider>
+  );
 }

@@ -1,9 +1,14 @@
-import { Writable } from 'node:stream';
+import { Writable } from "node:stream";
 
-import pino, { multistream, type Logger, type LoggerOptions, type StreamEntry } from 'pino';
-import pretty from 'pino-pretty';
+import pino, {
+  multistream,
+  type Logger,
+  type LoggerOptions,
+  type StreamEntry,
+} from "pino";
+import pretty from "pino-pretty";
 
-export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+export type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 export type AppLogger = Logger;
 
 export type LoggerBindings = {
@@ -28,7 +33,9 @@ export type CreateLoggerOptions = {
 };
 
 export const getLoggerBindings = (bindings: LoggerBindings): LoggerBindings =>
-  Object.fromEntries(Object.entries(bindings).filter(([, value]) => value !== undefined));
+  Object.fromEntries(
+    Object.entries(bindings).filter(([, value]) => value !== undefined),
+  );
 
 type LokiPayload = {
   streams: Array<{
@@ -62,7 +69,7 @@ class LokiWriteStream extends Writable {
   }) {
     super();
 
-    this.endpoint = new URL('/loki/api/v1/push', options.host).toString();
+    this.endpoint = new URL("/loki/api/v1/push", options.host).toString();
     this.level = options.level;
     this.batchingEnabled = options.batchingEnabled;
     this.intervalSeconds = options.intervalSeconds;
@@ -111,7 +118,7 @@ class LokiWriteStream extends Writable {
 
   private enqueueChunk(rawChunk: string): void {
     const lines = rawChunk
-      .split('\n')
+      .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
 
@@ -131,28 +138,28 @@ class LokiWriteStream extends Writable {
   }
 
   private resolveLevel(level: unknown): string {
-    if (typeof level === 'string') {
+    if (typeof level === "string") {
       return level;
     }
 
-    if (typeof level === 'number') {
-      if (level >= 60) return 'fatal';
-      if (level >= 50) return 'error';
-      if (level >= 40) return 'warn';
-      if (level >= 30) return 'info';
-      if (level >= 20) return 'debug';
-      return 'trace';
+    if (typeof level === "number") {
+      if (level >= 60) return "fatal";
+      if (level >= 50) return "error";
+      if (level >= 40) return "warn";
+      if (level >= 30) return "info";
+      if (level >= 20) return "debug";
+      return "trace";
     }
 
     return this.level;
   }
 
   private toUnixNano(value: unknown): string {
-    if (typeof value === 'number' && Number.isFinite(value)) {
+    if (typeof value === "number" && Number.isFinite(value)) {
       return `${Math.trunc(value)}000000`;
     }
 
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
       const parsed = Date.parse(value);
       if (!Number.isNaN(parsed)) {
         return `${parsed}000000`;
@@ -173,7 +180,7 @@ class LokiWriteStream extends Writable {
     this.lastFailureLogAt = now;
 
     console.warn(
-      '[logger] failed to push logs to Loki; check LOKI_URL or disable API_LOG_TO_LOKI',
+      "[logger] failed to push logs to Loki; check LOKI_URL or disable API_LOG_TO_LOKI",
       {
         error: error instanceof Error ? error.message : String(error),
       },
@@ -190,7 +197,7 @@ class LokiWriteStream extends Writable {
     }
 
     const entries = this.queue.splice(0, this.queue.length);
-    const streamsMap = new Map<string, LokiPayload['streams'][number]>();
+    const streamsMap = new Map<string, LokiPayload["streams"][number]>();
 
     for (const entry of entries) {
       const key = JSON.stringify(entry.labels);
@@ -212,9 +219,9 @@ class LokiWriteStream extends Writable {
     };
 
     this.flushPromise = fetch(this.endpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
       signal: AbortSignal.timeout(5_000),
@@ -241,28 +248,28 @@ const createDestination = (options: CreateLoggerOptions) => {
 
   if (options.enablePretty) {
     streams.push({
-      level: options.level ?? 'info',
+      level: options.level ?? "info",
       stream: pretty({
         colorize: true,
-        ignore: 'pid,hostname',
-        translateTime: 'SYS:standard',
+        ignore: "pid,hostname",
+        translateTime: "SYS:standard",
       }),
     });
   } else {
     streams.push({
-      level: options.level ?? 'info',
+      level: options.level ?? "info",
       stream: pino.destination({ dest: 1, sync: false }),
     });
   }
 
   if (options.enableLoki && options.lokiUrl) {
     streams.push({
-      level: options.level ?? 'info',
+      level: options.level ?? "info",
       stream: new LokiWriteStream({
         host: options.lokiUrl,
         serviceName: options.serviceName,
         environment: options.environment,
-        level: options.level ?? 'info',
+        level: options.level ?? "info",
         batchingEnabled: !options.enablePretty,
         intervalSeconds: 5,
       }),
@@ -276,7 +283,7 @@ const createDestination = (options: CreateLoggerOptions) => {
 
 export const createLogger = (options: CreateLoggerOptions): Logger => {
   const loggerOptions: LoggerOptions = {
-    level: options.level ?? 'info',
+    level: options.level ?? "info",
     name: options.serviceName,
     base: {
       service: options.serviceName,

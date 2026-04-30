@@ -1,19 +1,23 @@
-import type { ActiveOrganizationDto, AuthRole, OrganizationSummaryDto } from '@acme/shared';
+import type {
+  ActiveOrganizationDto,
+  AuthRole,
+  OrganizationSummaryDto,
+} from "@acme/shared";
 import {
   ActiveOrganizationDtoSchema,
   AuthRoleSchema,
   OrganizationSummaryDtoSchema,
-} from '@acme/shared';
+} from "@acme/shared";
 
-import { auth } from './server';
+import { auth } from "./server";
 
 export type AuthSessionData = Awaited<ReturnType<typeof auth.api.getSession>>;
 
 export type SessionEnvelope = NonNullable<AuthSessionData>;
 
 export type ResolvedAuthContext = {
-  session: SessionEnvelope['session'];
-  user: SessionEnvelope['user'];
+  session: SessionEnvelope["session"];
+  user: SessionEnvelope["user"];
   organizationId: string | null;
   organization: ActiveOrganizationDto | null;
   organizations: OrganizationSummaryDto[];
@@ -21,16 +25,16 @@ export type ResolvedAuthContext = {
 };
 
 export class UnauthorizedAuthError extends Error {
-  constructor(message = 'Authentication required') {
+  constructor(message = "Authentication required") {
     super(message);
-    this.name = 'UnauthorizedAuthError';
+    this.name = "UnauthorizedAuthError";
   }
 }
 
 export class ForbiddenAuthError extends Error {
-  constructor(message = 'You do not have access to this resource') {
+  constructor(message = "You do not have access to this resource") {
     super(message);
-    this.name = 'ForbiddenAuthError';
+    this.name = "ForbiddenAuthError";
   }
 }
 
@@ -39,13 +43,17 @@ const normalizeRole = (value: unknown): AuthRole | null => {
   return parsed.success ? parsed.data : null;
 };
 
-const normalizeOrganization = (value: unknown): OrganizationSummaryDto | null => {
-  if (!value || typeof value !== 'object') {
+const normalizeOrganization = (
+  value: unknown,
+): OrganizationSummaryDto | null => {
+  if (!value || typeof value !== "object") {
     return null;
   }
 
   const candidate =
-    'organization' in value && value.organization && typeof value.organization === 'object'
+    "organization" in value &&
+    value.organization &&
+    typeof value.organization === "object"
       ? value.organization
       : value;
 
@@ -59,7 +67,7 @@ const normalizeOrganization = (value: unknown): OrganizationSummaryDto | null =>
         ? (candidate as { createdAt: Date }).createdAt.toISOString()
         : (candidate as Record<string, unknown>).createdAt,
     metadata:
-      typeof (candidate as Record<string, unknown>).metadata === 'string'
+      typeof (candidate as Record<string, unknown>).metadata === "string"
         ? JSON.parse((candidate as { metadata: string }).metadata)
         : ((candidate as Record<string, unknown>).metadata ?? {}),
   });
@@ -67,13 +75,17 @@ const normalizeOrganization = (value: unknown): OrganizationSummaryDto | null =>
   return parsed.success ? parsed.data : null;
 };
 
-const normalizeActiveOrganization = (value: unknown): ActiveOrganizationDto | null => {
+const normalizeActiveOrganization = (
+  value: unknown,
+): ActiveOrganizationDto | null => {
   const organization = normalizeOrganization(value);
   const parsed = ActiveOrganizationDtoSchema.safeParse(organization);
   return parsed.success ? parsed.data : null;
 };
 
-const listOrganizations = async (requestHeaders: Headers): Promise<OrganizationSummaryDto[]> => {
+const listOrganizations = async (
+  requestHeaders: Headers,
+): Promise<OrganizationSummaryDto[]> => {
   const result = await auth.api.listOrganizations({
     headers: requestHeaders,
   });
@@ -84,7 +96,10 @@ const listOrganizations = async (requestHeaders: Headers): Promise<OrganizationS
 
   return result
     .map((organization) => normalizeOrganization(organization))
-    .filter((organization): organization is OrganizationSummaryDto => organization !== null);
+    .filter(
+      (organization): organization is OrganizationSummaryDto =>
+        organization !== null,
+    );
 };
 
 const setActiveOrganization = async (
@@ -99,7 +114,9 @@ const setActiveOrganization = async (
   });
 };
 
-export const getServerSession = async (requestHeaders: Headers): Promise<AuthSessionData> =>
+export const getServerSession = async (
+  requestHeaders: Headers,
+): Promise<AuthSessionData> =>
   auth.api.getSession({
     headers: requestHeaders,
   });
@@ -114,12 +131,15 @@ export const resolveAuthContext = async (
   }
 
   const sessionActiveOrganizationId =
-    (sessionData.session as { activeOrganizationId?: string | null }).activeOrganizationId ?? null;
+    (sessionData.session as { activeOrganizationId?: string | null })
+      .activeOrganizationId ?? null;
   const organizations = await listOrganizations(requestHeaders);
   let activeOrganizationId = sessionActiveOrganizationId;
   const hasActiveMembership =
     activeOrganizationId !== null &&
-    organizations.some((organization) => organization.id === activeOrganizationId);
+    organizations.some(
+      (organization) => organization.id === activeOrganizationId,
+    );
 
   if (activeOrganizationId && !hasActiveMembership) {
     await setActiveOrganization(requestHeaders, null);
@@ -159,22 +179,27 @@ export const resolveAuthContext = async (
     organizations,
     organization: activeOrganizationId
       ? normalizeActiveOrganization(
-          organizationResult.status === 'fulfilled'
+          organizationResult.status === "fulfilled"
             ? (organizationResult.value ??
-                organizations.find((organization) => organization.id === activeOrganizationId) ??
+                organizations.find(
+                  (organization) => organization.id === activeOrganizationId,
+                ) ??
                 null)
-            : (organizations.find((organization) => organization.id === activeOrganizationId) ??
-                null),
+            : (organizations.find(
+                (organization) => organization.id === activeOrganizationId,
+              ) ?? null),
         )
       : null,
     role:
-      activeOrganizationId && roleResult.status === 'fulfilled'
+      activeOrganizationId && roleResult.status === "fulfilled"
         ? normalizeRole((roleResult.value as { role?: unknown } | null)?.role)
         : null,
   };
 };
 
-export const requireSession = async (requestHeaders: Headers): Promise<ResolvedAuthContext> => {
+export const requireSession = async (
+  requestHeaders: Headers,
+): Promise<ResolvedAuthContext> => {
   const context = await resolveAuthContext(requestHeaders);
 
   if (!context) {

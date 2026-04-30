@@ -1,8 +1,8 @@
-import type { Context } from 'hono';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { failure, success, type ErrorCode } from '@acme/shared';
+import type { Context } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { failure, success, type ErrorCode } from "@acme/shared";
 
-import type { AppContext } from '../middleware/request-context';
+import type { AppContext } from "../middleware/request-context";
 
 export class AppError extends Error {
   constructor(
@@ -12,15 +12,15 @@ export class AppError extends Error {
     public readonly details?: unknown,
   ) {
     super(message);
-    this.name = 'AppError';
+    this.name = "AppError";
   }
 }
 
 const buildMeta = (c: Context<AppContext>) => {
-  const traceId = c.get('traceId');
+  const traceId = c.get("traceId");
 
   return {
-    requestId: c.get('requestId'),
+    requestId: c.get("requestId"),
     ...(traceId ? { traceId } : {}),
   };
 };

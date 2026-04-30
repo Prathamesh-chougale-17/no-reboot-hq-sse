@@ -1,12 +1,12 @@
-import type { ResolvedAuthContext } from '@acme/auth';
-import type { AppLogger } from '@acme/logger';
-import { getLoggerBindings } from '@acme/logger';
-import { withRequestSpan } from '@acme/observability';
-import type { MiddlewareHandler } from 'hono';
+import type { ResolvedAuthContext } from "@acme/auth";
+import type { AppLogger } from "@acme/logger";
+import { getLoggerBindings } from "@acme/logger";
+import { withRequestSpan } from "@acme/observability";
+import type { MiddlewareHandler } from "hono";
 
-import { observeRequest } from '../lib/metrics';
+import { observeRequest } from "../lib/metrics";
 
-import type { ApiEnv } from '@acme/config';
+import type { ApiEnv } from "@acme/config";
 
 export type AppVariables = {
   requestId: string;
@@ -27,22 +27,22 @@ export const requestContextMiddleware = ({
   logger: AppLogger;
 }): MiddlewareHandler<AppContext> => {
   return async (c, next) => {
-    const requestId = c.req.header('x-request-id') ?? crypto.randomUUID();
+    const requestId = c.req.header("x-request-id") ?? crypto.randomUUID();
     const startedAt = performance.now();
 
-    c.set('requestId', requestId);
-    c.set('auth', null);
-    c.header('x-request-id', requestId);
+    c.set("requestId", requestId);
+    c.set("auth", null);
+    c.header("x-request-id", requestId);
 
     await withRequestSpan(
       env.API_SERVICE_NAME,
       `${c.req.method} ${c.req.path}`,
       {
-        'http.method': c.req.method,
-        'http.route': c.req.path,
+        "http.method": c.req.method,
+        "http.route": c.req.path,
       },
       async (traceId) => {
-        c.set('traceId', traceId);
+        c.set("traceId", traceId);
 
         const requestLogger = logger.child(
           getLoggerBindings({
@@ -53,7 +53,7 @@ export const requestContextMiddleware = ({
           }),
         );
 
-        c.set('logger', requestLogger);
+        c.set("logger", requestLogger);
 
         try {
           await next();
@@ -73,7 +73,7 @@ export const requestContextMiddleware = ({
               statusCode,
               latency,
             }),
-            'request completed',
+            "request completed",
           );
         }
       },

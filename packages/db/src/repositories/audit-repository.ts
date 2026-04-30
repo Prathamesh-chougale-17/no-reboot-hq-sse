@@ -1,9 +1,14 @@
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq } from "drizzle-orm";
 
-import type { AuditEventType, AuditLogEntryDto, AuditLogListDto, AuthRole } from '@acme/shared';
+import type {
+  AuditEventType,
+  AuditLogEntryDto,
+  AuditLogListDto,
+  AuthRole,
+} from "@acme/shared";
 
-import { getDb } from '../client';
-import { auditLogs, users } from '../schema';
+import { getDb } from "../client";
+import { auditLogs, users } from "../schema";
 
 export type AppendAuditLogInput = {
   organizationId: string;
@@ -21,11 +26,14 @@ export type AppendAuditLogInput = {
 
 export interface AuditRepository {
   appendAuditLog(input: AppendAuditLogInput): Promise<void>;
-  listOrganizationAuditLogs(organizationId: string, limit: number): Promise<AuditLogListDto>;
+  listOrganizationAuditLogs(
+    organizationId: string,
+    limit: number,
+  ): Promise<AuditLogListDto>;
 }
 
 const parseAuditRole = (role: string | null): AuthRole | null => {
-  if (role === 'owner' || role === 'admin' || role === 'member') {
+  if (role === "owner" || role === "admin" || role === "member") {
     return role;
   }
 
@@ -34,7 +42,7 @@ const parseAuditRole = (role: string | null): AuthRole | null => {
 
 const toAuditLogEntry = (row: {
   auditLog: typeof auditLogs.$inferSelect;
-  actor: Pick<typeof users.$inferSelect, 'id' | 'name' | 'email'> | null;
+  actor: Pick<typeof users.$inferSelect, "id" | "name" | "email"> | null;
 }): AuditLogEntryDto => ({
   id: row.auditLog.id,
   organizationId: row.auditLog.organizationId,
@@ -54,7 +62,9 @@ const toAuditLogEntry = (row: {
   ipAddress: row.auditLog.ipAddress ?? null,
   userAgent: row.auditLog.userAgent ?? null,
   metadata:
-    row.auditLog.metadata && typeof row.auditLog.metadata === 'object' ? row.auditLog.metadata : {},
+    row.auditLog.metadata && typeof row.auditLog.metadata === "object"
+      ? row.auditLog.metadata
+      : {},
   createdAt: row.auditLog.createdAt.toISOString(),
 });
 

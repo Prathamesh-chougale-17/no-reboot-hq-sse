@@ -1,5 +1,5 @@
-import { defineConfig } from 'eslint/config';
+import { defineConfig } from "eslint/config";
 
-import reactConfig from '../eslint-config/react.js';
+import reactConfig from "../eslint-config/react.js";
 
 export default defineConfig([...reactConfig]);

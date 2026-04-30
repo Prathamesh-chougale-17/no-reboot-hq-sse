@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import type { OrganizationSummaryDto } from '@acme/shared';
-import { createAuthClient } from 'better-auth/react';
-import { organizationClient } from 'better-auth/client/plugins';
+import type { OrganizationSummaryDto } from "@acme/shared";
+import { createAuthClient } from "better-auth/react";
+import { organizationClient } from "better-auth/client/plugins";
 
 // Better Auth's inferred client type currently expands through internal module paths.
 type AsyncClientMethod = (...args: unknown[]) => Promise<unknown>;

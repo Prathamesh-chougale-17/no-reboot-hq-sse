@@ -1,16 +1,18 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useMemo, useState, useTransition } from 'react';
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 
-import { AccountSignUpInputSchema } from '@acme/shared';
-import { Button, Input } from '@acme/ui';
+import { AccountSignUpInputSchema } from "@acme/shared";
+import { Button, Input } from "@acme/ui";
 
-import { authClient } from '@/lib/auth-client';
-import { useInvitationPreviewQuery } from '@/lib/queries';
+import { authClient } from "@/lib/auth-client";
+import { useInvitationPreviewQuery } from "@/lib/queries";
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to finish sign-up right now.';
+  error instanceof Error
+    ? error.message
+    : "Unable to finish sign-up right now.";
 
 export function SignUpForm({
   redirectTo,
@@ -29,7 +31,7 @@ export function SignUpForm({
       redirectTo ||
       (invitationId
         ? `/accept-invite?invitationId=${encodeURIComponent(invitationId)}`
-        : '/onboarding'),
+        : "/onboarding"),
     [invitationId, redirectTo],
   );
 
@@ -44,14 +46,16 @@ export function SignUpForm({
         startTransition(async () => {
           try {
             if (invitationId && !invitationPreview?.email) {
-              setError('Invitation details are still loading. Try again in a moment.');
+              setError(
+                "Invitation details are still loading. Try again in a moment.",
+              );
               return;
             }
 
             const payload = AccountSignUpInputSchema.parse({
-              name: formData.get('name'),
-              email: invitationPreview?.email ?? formData.get('email'),
-              password: formData.get('password'),
+              name: formData.get("name"),
+              email: invitationPreview?.email ?? formData.get("email"),
+              password: formData.get("password"),
               redirectTo: targetPath,
               invitationId,
             });
@@ -63,7 +67,7 @@ export function SignUpForm({
             });
 
             if (signUpError) {
-              setError(signUpError.message ?? 'Unable to create your account.');
+              setError(signUpError.message ?? "Unable to create your account.");
               return;
             }
 
@@ -83,7 +87,12 @@ export function SignUpForm({
           >
             Full name
           </label>
-          <Input id="sign-up-name" name="name" placeholder="Jane Doe" required />
+          <Input
+            id="sign-up-name"
+            name="name"
+            placeholder="Jane Doe"
+            required
+          />
         </div>
         <div className="space-y-2">
           <label
@@ -98,14 +107,18 @@ export function SignUpForm({
                 id="sign-up-email"
                 value={
                   invitationPreviewQuery.isPending
-                    ? 'Loading invited email...'
-                    : (invitationPreview?.email ?? '')
+                    ? "Loading invited email..."
+                    : (invitationPreview?.email ?? "")
                 }
                 disabled
                 readOnly
               />
               {invitationPreview?.email ? (
-                <input name="email" type="hidden" value={invitationPreview.email} />
+                <input
+                  name="email"
+                  type="hidden"
+                  value={invitationPreview.email}
+                />
               ) : null}
             </>
           ) : (
@@ -136,7 +149,7 @@ export function SignUpForm({
       </div>
       {invitationPreview ? (
         <p className="text-sm leading-6 text-slate-600 dark:text-slate-300">
-          This account will be created for an invitation to{' '}
+          This account will be created for an invitation to{" "}
           <strong className="text-slate-950 dark:text-slate-50">
             {invitationPreview.organizationName}
           </strong>
@@ -144,15 +157,19 @@ export function SignUpForm({
         </p>
       ) : null}
       {invitationPreviewQuery.isError ? (
-        <p className="text-sm text-red-600 dark:text-red-400">Unable to load invitation details.</p>
+        <p className="text-sm text-red-600 dark:text-red-400">
+          Unable to load invitation details.
+        </p>
       ) : null}
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+      ) : null}
       <Button
         type="submit"
         className="w-full"
         disabled={isPending || (Boolean(invitationId) && !invitationPreview)}
       >
-        {isPending ? 'Creating account...' : 'Create account'}
+        {isPending ? "Creating account..." : "Create account"}
       </Button>
     </form>
   );

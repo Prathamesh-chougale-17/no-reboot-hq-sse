@@ -4,15 +4,15 @@ import {
   type Attributes,
   type SpanStatus,
   SpanStatusCode,
-} from '@opentelemetry/api';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { resourceFromAttributes } from '@opentelemetry/resources';
-import { NodeSDK } from '@opentelemetry/sdk-node';
+} from "@opentelemetry/api";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { resourceFromAttributes } from "@opentelemetry/resources";
+import { NodeSDK } from "@opentelemetry/sdk-node";
 import {
   SEMRESATTRS_DEPLOYMENT_ENVIRONMENT,
   SEMRESATTRS_SERVICE_NAME,
-} from '@opentelemetry/semantic-conventions';
+} from "@opentelemetry/semantic-conventions";
 
 export type ObservabilityOptions = {
   serviceName: string;
@@ -23,7 +23,9 @@ export type ObservabilityOptions = {
 let sdk: NodeSDK | undefined;
 let hasStarted = false;
 
-export const startObservability = async (options: ObservabilityOptions): Promise<void> => {
+export const startObservability = async (
+  options: ObservabilityOptions,
+): Promise<void> => {
   if (hasStarted) {
     return;
   }
@@ -33,7 +35,7 @@ export const startObservability = async (options: ObservabilityOptions): Promise
   }
 
   const exporter = new OTLPTraceExporter({
-    url: `${options.endpoint.replace(/\/$/, '')}/v1/traces`,
+    url: `${options.endpoint.replace(/\/$/, "")}/v1/traces`,
   });
 
   sdk = new NodeSDK({
@@ -79,7 +81,8 @@ export const withRequestSpan = async <T>(
       span.recordException(error as Error);
       span.setStatus({
         code: SpanStatusCode.ERROR,
-        message: error instanceof Error ? error.message : 'Unhandled request error',
+        message:
+          error instanceof Error ? error.message : "Unhandled request error",
       } satisfies SpanStatus);
       throw error;
     } finally {

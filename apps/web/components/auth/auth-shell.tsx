@@ -1,11 +1,11 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { APP_NAME } from '@acme/shared';
+import { APP_NAME } from "@acme/shared";
 
 const panelClassName =
-  'rounded-xl border border-slate-200 bg-white/85 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none';
+  "rounded-xl border border-slate-200 bg-white/85 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none";
 const panelHeaderClassName =
-  'flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800';
+  "flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800";
 
 export function AuthShell({
   eyebrow,
@@ -49,7 +49,7 @@ export function AuthShell({
             </div>
           </div>
           <div className="grid gap-0 sm:grid-cols-3">
-            {['Sessions', 'RBAC', 'Contracts'].map((item) => (
+            {["Sessions", "RBAC", "Contracts"].map((item) => (
               <div
                 key={item}
                 className="border-b border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 last:border-b-0 dark:border-slate-800 dark:text-slate-300 sm:border-b-0 sm:border-r sm:last:border-r-0"

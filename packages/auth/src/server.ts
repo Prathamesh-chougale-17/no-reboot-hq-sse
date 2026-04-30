@@ -1,13 +1,13 @@
-import { drizzleAdapter } from '@better-auth/drizzle-adapter';
-import { loadBetterAuthEnv, resolveServerFeatureFlags } from '@acme/config';
-import { createUsersRepository, getDb } from '@acme/db';
-import { enqueueInviteEmailJob } from '@acme/jobs';
-import { APP_NAME } from '@acme/shared';
-import { betterAuth } from 'better-auth';
-import { nextCookies } from 'better-auth/next-js';
-import { organization } from 'better-auth/plugins';
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { loadBetterAuthEnv, resolveServerFeatureFlags } from "@acme/config";
+import { createUsersRepository, getDb } from "@acme/db";
+import { enqueueInviteEmailJob } from "@acme/jobs";
+import { APP_NAME } from "@acme/shared";
+import { betterAuth } from "better-auth";
+import { nextCookies } from "better-auth/next-js";
+import { organization } from "better-auth/plugins";
 
-import { createAuthMailer } from './mailer';
+import { createAuthMailer } from "./mailer";
 
 const env = loadBetterAuthEnv(process.env);
 const mailer = createAuthMailer(env);
@@ -15,7 +15,9 @@ const featureFlags = resolveServerFeatureFlags(process.env);
 const usersRepository = createUsersRepository();
 
 const trustedOrigins = Array.from(
-  new Set([env.BETTER_AUTH_URL, env.APP_ORIGIN, env.API_CORS_ORIGIN].filter(Boolean)),
+  new Set(
+    [env.BETTER_AUTH_URL, env.APP_ORIGIN, env.API_CORS_ORIGIN].filter(Boolean),
+  ),
 );
 
 export const auth = betterAuth({
@@ -25,12 +27,12 @@ export const auth = betterAuth({
   trustedOrigins,
   advanced: {
     database: {
-      generateId: 'uuid',
+      generateId: "uuid",
     },
-    useSecureCookies: env.NODE_ENV === 'production',
+    useSecureCookies: env.NODE_ENV === "production",
   },
   database: drizzleAdapter(getDb(), {
-    provider: 'pg',
+    provider: "pg",
     usePlural: true,
   }),
   session: {
@@ -66,9 +68,15 @@ export const auth = betterAuth({
       allowUserToCreateOrganization: async (user) =>
         !(await usersRepository.hasAnyMembership(user.id)),
       cancelPendingInvitationsOnReInvite: true,
-      creatorRole: 'owner',
+      creatorRole: "owner",
       requireEmailVerificationOnInvitation: false,
-      async sendInvitationEmail({ email, inviter, invitation, organization, id }) {
+      async sendInvitationEmail({
+        email,
+        inviter,
+        invitation,
+        organization,
+        id,
+      }) {
         if (featureFlags.asyncInviteEmail) {
           try {
             await enqueueInviteEmailJob({
@@ -76,10 +84,13 @@ export const auth = betterAuth({
             });
             return;
           } catch (error) {
-            console.error('[auth-email] failed to enqueue invitation email job', {
-              invitationId: id,
-              error,
-            });
+            console.error(
+              "[auth-email] failed to enqueue invitation email job",
+              {
+                invitationId: id,
+                error,
+              },
+            );
           }
         }
 
@@ -88,7 +99,7 @@ export const auth = betterAuth({
           inviterName: inviter.user.name,
           organizationName: organization.name,
           role: invitation.role,
-          url: `${env.APP_ORIGIN.replace(/\/$/, '')}/accept-invite?invitationId=${id}`,
+          url: `${env.APP_ORIGIN.replace(/\/$/, "")}/accept-invite?invitationId=${id}`,
         });
       },
     }),

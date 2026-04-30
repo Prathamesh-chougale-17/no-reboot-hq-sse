@@ -1,12 +1,16 @@
-import { requireRole as requireAuthRole, requireSession, resolveAuthContext } from '@acme/auth';
-import { getLoggerBindings } from '@acme/logger';
-import { trace } from '@opentelemetry/api';
-import * as Sentry from '@sentry/node';
-import type { MiddlewareHandler } from 'hono';
+import {
+  requireRole as requireAuthRole,
+  requireSession,
+  resolveAuthContext,
+} from "@acme/auth";
+import { getLoggerBindings } from "@acme/logger";
+import { trace } from "@opentelemetry/api";
+import * as Sentry from "@sentry/node";
+import type { MiddlewareHandler } from "hono";
 
-import { AppError } from '../lib/http';
+import { AppError } from "../lib/http";
 
-import type { AppContext } from './request-context';
+import type { AppContext } from "./request-context";
 
 const getRequestHeaders = (request: Request) => new Headers(request.headers);
 
@@ -14,8 +18,8 @@ const applyAuthContext = (
   c: Parameters<MiddlewareHandler<AppContext>>[0],
   authContext: Awaited<ReturnType<typeof resolveAuthContext>>,
 ) => {
-  const previousAuthContext = c.get('auth');
-  c.set('auth', authContext);
+  const previousAuthContext = c.get("auth");
+  c.set("auth", authContext);
 
   if (!authContext) {
     return;
@@ -23,7 +27,9 @@ const applyAuthContext = (
 
   const authBindings = getLoggerBindings({
     userId: authContext.user.id,
-    ...(authContext.organizationId ? { organizationId: authContext.organizationId } : {}),
+    ...(authContext.organizationId
+      ? { organizationId: authContext.organizationId }
+      : {}),
     ...(authContext.role ? { role: authContext.role } : {}),
   });
 
@@ -33,20 +39,26 @@ const applyAuthContext = (
     previousAuthContext.role === authContext.role;
 
   if (!hasSameAuthBindings) {
-    c.set('logger', c.get('logger').child(authBindings));
+    c.set("logger", c.get("logger").child(authBindings));
   }
 
   Sentry.getCurrentScope().setUser({
     id: authContext.user.id,
     email: authContext.user.email,
   });
-  Sentry.getCurrentScope().setTag('organization.id', authContext.organizationId ?? 'none');
-  Sentry.getCurrentScope().setTag('organization.role', authContext.role ?? 'none');
+  Sentry.getCurrentScope().setTag(
+    "organization.id",
+    authContext.organizationId ?? "none",
+  );
+  Sentry.getCurrentScope().setTag(
+    "organization.role",
+    authContext.role ?? "none",
+  );
 
   trace.getActiveSpan()?.setAttributes({
-    'auth.user.id': authContext.user.id,
-    'auth.organization.id': authContext.organizationId ?? '',
-    'auth.role': authContext.role ?? '',
+    "auth.user.id": authContext.user.id,
+    "auth.organization.id": authContext.organizationId ?? "",
+    "auth.role": authContext.role ?? "",
   });
 };
 
@@ -65,7 +77,7 @@ export const requireAuthenticatedUser = (): MiddlewareHandler<AppContext> => {
       applyAuthContext(c, authContext);
       await next();
     } catch {
-      throw new AppError(401, 'UNAUTHORIZED', 'Authentication required');
+      throw new AppError(401, "UNAUTHORIZED", "Authentication required");
     }
   };
 };
@@ -75,15 +87,22 @@ export const requireRole = (
 ): MiddlewareHandler<AppContext> => {
   return async (c, next) => {
     try {
-      const authContext = await requireAuthRole(getRequestHeaders(c.req.raw), roles);
+      const authContext = await requireAuthRole(
+        getRequestHeaders(c.req.raw),
+        roles,
+      );
       applyAuthContext(c, authContext);
       await next();
     } catch (error) {
-      if (error instanceof Error && error.name === 'UnauthorizedAuthError') {
-        throw new AppError(401, 'UNAUTHORIZED', 'Authentication required');
+      if (error instanceof Error && error.name === "UnauthorizedAuthError") {
+        throw new AppError(401, "UNAUTHORIZED", "Authentication required");
       }
 
-      throw new AppError(403, 'FORBIDDEN', 'You do not have access to this resource');
+      throw new AppError(
+        403,
+        "FORBIDDEN",
+        "You do not have access to this resource",
+      );
     }
   };
 };

@@ -1,11 +1,15 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from "drizzle-orm";
 
-import type { WebhookEndpointDto, WebhookEndpointListDto, WebhookEventType } from '@acme/shared';
+import type {
+  WebhookEndpointDto,
+  WebhookEndpointListDto,
+  WebhookEventType,
+} from "@acme/shared";
 
-import { getDb } from '../client';
-import { webhookDeliveries, webhookEndpoints } from '../schema';
+import { getDb } from "../client";
+import { webhookDeliveries, webhookEndpoints } from "../schema";
 
-export type WebhookDeliveryStatus = 'pending' | 'delivered' | 'failed';
+export type WebhookDeliveryStatus = "pending" | "delivered" | "failed";
 
 export type CreateWebhookEndpointRecordInput = {
   organizationId: string;
@@ -45,13 +49,22 @@ export type WebhookDeliveryRecord = {
 };
 
 export interface WebhookRepository {
-  listOrganizationWebhookEndpoints(organizationId: string): Promise<WebhookEndpointListDto>;
-  createWebhookEndpoint(input: CreateWebhookEndpointRecordInput): Promise<WebhookEndpointDto>;
-  deleteWebhookEndpoint(organizationId: string, endpointId: string): Promise<boolean>;
+  listOrganizationWebhookEndpoints(
+    organizationId: string,
+  ): Promise<WebhookEndpointListDto>;
+  createWebhookEndpoint(
+    input: CreateWebhookEndpointRecordInput,
+  ): Promise<WebhookEndpointDto>;
+  deleteWebhookEndpoint(
+    organizationId: string,
+    endpointId: string,
+  ): Promise<boolean>;
   createWebhookDeliveriesForEvent(
     input: CreateWebhookDeliveryInput,
   ): Promise<Array<{ id: string }>>;
-  findWebhookDeliveryById(deliveryId: string): Promise<WebhookDeliveryRecord | null>;
+  findWebhookDeliveryById(
+    deliveryId: string,
+  ): Promise<WebhookDeliveryRecord | null>;
   markWebhookDeliverySuccess(
     deliveryId: string,
     responseStatus: number,
@@ -70,13 +83,13 @@ export interface WebhookRepository {
 const parseWebhookEventTypes = (value: string[] | null): WebhookEventType[] =>
   (value ?? []).filter(
     (eventType): eventType is WebhookEventType =>
-      eventType === 'organization.created' ||
-      eventType === 'invitation.created' ||
-      eventType === 'invitation.accepted',
+      eventType === "organization.created" ||
+      eventType === "invitation.created" ||
+      eventType === "invitation.accepted",
   );
 
 const parseWebhookDeliveryStatus = (value: string): WebhookDeliveryStatus =>
-  value === 'delivered' || value === 'failed' ? value : 'pending';
+  value === "delivered" || value === "failed" ? value : "pending";
 
 const toWebhookEndpointDto = (
   record: typeof webhookEndpoints.$inferSelect,
@@ -120,7 +133,7 @@ export const createWebhookRepository = (): WebhookRepository => ({
       .returning();
 
     if (!created) {
-      throw new Error('Webhook endpoint creation returned no row.');
+      throw new Error("Webhook endpoint creation returned no row.");
     }
 
     return toWebhookEndpointDto(created);
@@ -195,7 +208,10 @@ export const createWebhookRepository = (): WebhookRepository => ({
         },
       })
       .from(webhookDeliveries)
-      .innerJoin(webhookEndpoints, eq(webhookDeliveries.endpointId, webhookEndpoints.id))
+      .innerJoin(
+        webhookEndpoints,
+        eq(webhookDeliveries.endpointId, webhookEndpoints.id),
+      )
       .where(eq(webhookDeliveries.id, deliveryId))
       .limit(1);
 
@@ -209,7 +225,7 @@ export const createWebhookRepository = (): WebhookRepository => ({
       organizationId: row.delivery.organizationId,
       eventType: row.delivery.eventType as WebhookEventType,
       payload:
-        row.delivery.payload && typeof row.delivery.payload === 'object'
+        row.delivery.payload && typeof row.delivery.payload === "object"
           ? row.delivery.payload
           : {},
       status: parseWebhookDeliveryStatus(row.delivery.status),
@@ -229,7 +245,7 @@ export const createWebhookRepository = (): WebhookRepository => ({
     await database
       .update(webhookDeliveries)
       .set({
-        status: 'delivered',
+        status: "delivered",
         attemptCount,
         lastResponseStatus: responseStatus,
         lastError: null,
@@ -251,7 +267,7 @@ export const createWebhookRepository = (): WebhookRepository => ({
     await database
       .update(webhookDeliveries)
       .set({
-        status: shouldRetry ? 'pending' : 'failed',
+        status: shouldRetry ? "pending" : "failed",
         attemptCount,
         lastResponseStatus: responseStatus ?? null,
         lastError: errorMessage,

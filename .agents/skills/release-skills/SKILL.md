@@ -23,22 +23,22 @@ Just run `/release-skills` - auto-detects your project configuration.
 
 ## Supported Projects
 
-| Project Type | Version File | Auto-Detected |
-|--------------|--------------|---------------|
-| Node.js | package.json | ✓ |
-| Python | pyproject.toml | ✓ |
-| Rust | Cargo.toml | ✓ |
-| Claude Plugin | marketplace.json | ✓ |
-| Generic | VERSION / version.txt | ✓ |
+| Project Type  | Version File          | Auto-Detected |
+| ------------- | --------------------- | ------------- |
+| Node.js       | package.json          | ✓             |
+| Python        | pyproject.toml        | ✓             |
+| Rust          | Cargo.toml            | ✓             |
+| Claude Plugin | marketplace.json      | ✓             |
+| Generic       | VERSION / version.txt | ✓             |
 
 ## Options
 
-| Flag | Description |
-|------|-------------|
+| Flag        | Description                       |
+| ----------- | --------------------------------- |
 | `--dry-run` | Preview changes without executing |
-| `--major` | Force major version bump |
-| `--minor` | Force minor version bump |
-| `--patch` | Force patch version bump |
+| `--major`   | Force major version bump          |
+| `--minor`   | Force minor version bump          |
+| `--patch`   | Force patch version bump          |
 
 ## Workflow
 
@@ -65,23 +65,24 @@ If `.releaserc.yml` defines `release.hooks`, keep the release workflow generic a
 
 Supported hooks:
 
-| Hook | Purpose | Expected Responsibility |
-|------|---------|-------------------------|
-| `prepare_artifact` | Make one target releasable | Validate the target is self-contained, sync/embed local dependencies, optionally stage extra files |
+| Hook               | Purpose                       | Expected Responsibility                                                                                   |
+| ------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `prepare_artifact` | Make one target releasable    | Validate the target is self-contained, sync/embed local dependencies, optionally stage extra files        |
 | `publish_artifact` | Publish one releasable target | Upload the prepared target (or a staged directory if the project uses one), attach version/changelog/tags |
 
 Supported placeholders:
 
-| Placeholder | Meaning |
-|-------------|---------|
-| `{project_root}` | Absolute path to repository root |
-| `{target}` | Absolute path to the module/skill being released |
-| `{artifact_dir}` | Absolute path to a temporary staging directory for this target, when the project uses one |
-| `{version}` | Version selected by the release workflow |
-| `{dry_run}` | `true` or `false` |
-| `{release_notes_file}` | Absolute path to a UTF-8 file containing release notes/changelog text |
+| Placeholder            | Meaning                                                                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| `{project_root}`       | Absolute path to repository root                                                          |
+| `{target}`             | Absolute path to the module/skill being released                                          |
+| `{artifact_dir}`       | Absolute path to a temporary staging directory for this target, when the project uses one |
+| `{version}`            | Version selected by the release workflow                                                  |
+| `{dry_run}`            | `true` or `false`                                                                         |
+| `{release_notes_file}` | Absolute path to a UTF-8 file containing release notes/changelog text                     |
 
 Execution rules:
+
 - Keep the skill generic: do not hardcode registry/package-manager/project layout details into this SKILL.
 - If `prepare_artifact` exists, run it once per target before publish-related checks that need the final releasable target state.
 - Write release notes to a temp file and pass that file path to `publish_artifact`; do not inline multiline changelog text into shell commands.
@@ -91,16 +92,17 @@ Execution rules:
 
 Changelog files follow the pattern `CHANGELOG_{LANG}.md` or `CHANGELOG.{lang}.md`, where `{lang}` / `{LANG}` is a language or region code.
 
-| Pattern | Example | Language |
-|---------|---------|----------|
-| No suffix | `CHANGELOG.md` | en (default) |
-| `_{LANG}` (uppercase) | `CHANGELOG_CN.md`, `CHANGELOG_JP.md` | Corresponding language |
-| `.{lang}` (lowercase) | `CHANGELOG.zh.md`, `CHANGELOG.ja.md` | Corresponding language |
-| `.{lang-region}` | `CHANGELOG.zh-CN.md` | Corresponding region variant |
+| Pattern               | Example                              | Language                     |
+| --------------------- | ------------------------------------ | ---------------------------- |
+| No suffix             | `CHANGELOG.md`                       | en (default)                 |
+| `_{LANG}` (uppercase) | `CHANGELOG_CN.md`, `CHANGELOG_JP.md` | Corresponding language       |
+| `.{lang}` (lowercase) | `CHANGELOG.zh.md`, `CHANGELOG.ja.md` | Corresponding language       |
+| `.{lang-region}`      | `CHANGELOG.zh-CN.md`                 | Corresponding region variant |
 
 Common language codes: `zh` (Chinese), `ja` (Japanese), `ko` (Korean), `de` (German), `fr` (French), `es` (Spanish).
 
 **Output Example**:
+
 ```
 Project detected:
   Version file: package.json (1.2.3)
@@ -120,18 +122,19 @@ git diff ${LAST_TAG}..HEAD --stat
 
 Categorize by conventional commit types:
 
-| Type | Description |
-|------|-------------|
-| feat | New features |
-| fix | Bug fixes |
-| docs | Documentation |
-| refactor | Code refactoring |
-| perf | Performance improvements |
-| test | Test changes |
-| style | Formatting, styling |
-| chore | Maintenance (skip in changelog) |
+| Type     | Description                     |
+| -------- | ------------------------------- |
+| feat     | New features                    |
+| fix      | Bug fixes                       |
+| docs     | Documentation                   |
+| refactor | Code refactoring                |
+| perf     | Performance improvements        |
+| test     | Test changes                    |
+| style    | Formatting, styling             |
+| chore    | Maintenance (skip in changelog) |
 
 **Breaking Change Detection**:
+
 - Commit message starts with `BREAKING CHANGE`
 - Commit body/footer contains `BREAKING CHANGE:`
 - Removed public APIs, renamed exports, changed interfaces
@@ -141,6 +144,7 @@ If breaking changes detected, warn user: "Breaking changes detected. Consider ma
 ### Step 3: Determine Version Bump
 
 Rules (in priority order):
+
 1. User flag `--major/--minor/--patch` → Use specified
 2. BREAKING CHANGE detected → Major bump (1.x.x → 2.0.0)
 3. `feat:` commits present → Minor bump (1.2.x → 1.3.0)
@@ -167,14 +171,14 @@ For each detected changelog file:
 
 **Section Title Translations** (built-in):
 
-| Type | en | zh | ja | ko | de | fr | es |
-|------|----|----|----|----|----|----|-----|
-| feat | Features | 新功能 | 新機能 | 새로운 기능 | Funktionen | Fonctionnalités | Características |
-| fix | Fixes | 修复 | 修正 | 수정 | Fehlerbehebungen | Corrections | Correcciones |
-| docs | Documentation | 文档 | ドキュメント | 문서 | Dokumentation | Documentation | Documentación |
-| refactor | Refactor | 重构 | リファクタリング | 리팩토링 | Refactoring | Refactorisation | Refactorización |
-| perf | Performance | 性能优化 | パフォーマンス | 성능 | Leistung | Performance | Rendimiento |
-| breaking | Breaking Changes | 破坏性变更 | 破壊的変更 | 주요 변경사항 | Breaking Changes | Changements majeurs | Cambios importantes |
+| Type     | en               | zh         | ja               | ko            | de               | fr                  | es                  |
+| -------- | ---------------- | ---------- | ---------------- | ------------- | ---------------- | ------------------- | ------------------- |
+| feat     | Features         | 新功能     | 新機能           | 새로운 기능   | Funktionen       | Fonctionnalités     | Características     |
+| fix      | Fixes            | 修复       | 修正             | 수정          | Fehlerbehebungen | Corrections         | Correcciones        |
+| docs     | Documentation    | 文档       | ドキュメント     | 문서          | Dokumentation    | Documentation       | Documentación       |
+| refactor | Refactor         | 重构       | リファクタリング | 리팩토링      | Refactoring      | Refactorisation     | Refactorización     |
+| perf     | Performance      | 性能优化   | パフォーマンス   | 성능          | Leistung         | Performance         | Rendimiento         |
+| breaking | Breaking Changes | 破坏性变更 | 破壊的変更       | 주요 변경사항 | Breaking Changes | Changements majeurs | Cambios importantes |
 
 **Changelog Format**:
 
@@ -182,19 +186,23 @@ For each detected changelog file:
 ## {VERSION} - {YYYY-MM-DD}
 
 ### Features
+
 - Description of new feature
 - Description of third-party contribution (by @username)
 
 ### Fixes
+
 - Description of fix
 
 ### Documentation
+
 - Description of docs changes
 ```
 
 Only include sections that have changes. Omit empty sections.
 
 **Third-Party Attribution Rules**:
+
 - Only add `(by @username)` for contributors who are NOT the repo owner
 - Use GitHub username with `@` prefix
 - Place at the end of the changelog entry line
@@ -203,38 +211,47 @@ Only include sections that have changes. Omit empty sections.
 **Multi-language Example**:
 
 English (CHANGELOG.md):
+
 ```markdown
 ## 1.3.0 - 2026-01-22
 
 ### Features
+
 - Add user authentication module (by @contributor1)
 - Support OAuth2 login
 
 ### Fixes
+
 - Fix memory leak in connection pool
 ```
 
 Chinese (CHANGELOG.zh.md):
+
 ```markdown
 ## 1.3.0 - 2026-01-22
 
 ### 新功能
+
 - 新增用户认证模块 (by @contributor1)
 - 支持 OAuth2 登录
 
 ### 修复
+
 - 修复连接池内存泄漏问题
 ```
 
 Japanese (CHANGELOG.ja.md):
+
 ```markdown
 ## 1.3.0 - 2026-01-22
 
 ### 新機能
+
 - ユーザー認証モジュールを追加 (by @contributor1)
 - OAuth2 ログインをサポート
 
 ### 修正
+
 - コネクションプールのメモリリークを修正
 ```
 
@@ -250,6 +267,7 @@ Analyze commits since last tag and group by affected skill/module:
 3. **For each group**, identify related README updates needed
 
 **Example Grouping**:
+
 ```
 baoyu-cover-image:
   - feat: add new style options
@@ -275,6 +293,7 @@ For each skill/module group (in order of changes):
    - Update feature descriptions if behavior changed
 
 2. **Stage and commit**:
+
    ```bash
    git add skills/<skill-name>/*
    git add README.md README.zh.md  # If updated for this skill
@@ -288,6 +307,7 @@ For each skill/module group (in order of changes):
    - `<description>`: Clear, meaningful description of changes
 
 **Example Commits**:
+
 ```bash
 git commit -m "feat(baoyu-cover-image): add watercolor and minimalist styles"
 git commit -m "fix(baoyu-comic): improve panel layout for long dialogues"
@@ -313,13 +333,13 @@ git commit -m "docs(project): update architecture documentation"
 
 **Version Paths by File Type**:
 
-| File | Path |
-|------|------|
-| package.json | `$.version` |
-| pyproject.toml | `project.version` |
-| Cargo.toml | `package.version` |
-| marketplace.json | `$.metadata.version` |
-| VERSION / version.txt | Direct content |
+| File                  | Path                 |
+| --------------------- | -------------------- |
+| package.json          | `$.version`          |
+| pyproject.toml        | `project.version`    |
+| Cargo.toml            | `package.version`    |
+| marketplace.json      | `$.metadata.version` |
+| VERSION / version.txt | Direct content       |
 
 ### Step 8: User Confirmation
 
@@ -336,6 +356,7 @@ Before creating the release commit, ask user to confirm:
    - Options: "Yes, push after commit", "No, keep local only"
 
 **Example Output Before Confirmation**:
+
 ```
 Commits created:
   1. feat(baoyu-cover-image): add watercolor and minimalist styles
@@ -357,17 +378,20 @@ Ready to create release commit and tag.
 After user confirmation:
 
 1. **Stage version and changelog files**:
+
    ```bash
    git add <version-file>
    git add CHANGELOG*.md
    ```
 
 2. **Create release commit**:
+
    ```bash
    git commit -m "chore: release v{VERSION}"
    ```
 
 3. **Create tag**:
+
    ```bash
    git tag v{VERSION}
    ```
@@ -381,6 +405,7 @@ After user confirmation:
 **Note**: Do NOT add Co-Authored-By line. This is a release commit, not a code contribution.
 
 **Post-Release Output**:
+
 ```
 Release v1.3.0 created.
 
@@ -404,7 +429,7 @@ Optional config file in project root to override defaults:
 # Version file (auto-detected if not specified)
 version:
   file: package.json
-  path: $.version  # JSONPath for JSON, dotted path for TOML
+  path: $.version # JSONPath for JSON, dotted path for TOML
 
 # Changelog files (auto-detected if not specified)
 changelog:
@@ -433,7 +458,7 @@ commit:
 
 # Tag format
 tag:
-  prefix: v  # Results in v1.0.0
+  prefix: v # Results in v1.0.0
   sign: false
 
 # Additional files to include in release commit
@@ -503,6 +528,7 @@ No changes made. Run without --dry-run to execute.
 ## When to Use
 
 Trigger this skill when user requests:
+
 - "release", "发布", "create release", "new version", "新版本"
 - "bump version", "update version", "更新版本"
 - "prepare release"

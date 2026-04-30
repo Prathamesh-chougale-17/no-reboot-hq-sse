@@ -1,4 +1,4 @@
-import { aliasedTable, and, desc, eq, sql } from 'drizzle-orm';
+import { aliasedTable, and, desc, eq, sql } from "drizzle-orm";
 
 import type {
   AuthRole,
@@ -6,17 +6,23 @@ import type {
   OrganizationMemberDto,
   PendingInvitationDto,
   UserDto,
-} from '@acme/shared';
+} from "@acme/shared";
 
-import { getDb } from '../client';
-import { invitations, members, organizations, users } from '../schema';
+import { getDb } from "../client";
+import { invitations, members, organizations, users } from "../schema";
 
 export interface UsersRepository {
   hasAnyMembership(userId: string): Promise<boolean>;
-  listOrganizationMembers(organizationId: string): Promise<OrganizationMemberDto[]>;
-  listPendingInvitations(organizationId: string): Promise<PendingInvitationDto[]>;
+  listOrganizationMembers(
+    organizationId: string,
+  ): Promise<OrganizationMemberDto[]>;
+  listPendingInvitations(
+    organizationId: string,
+  ): Promise<PendingInvitationDto[]>;
   listPendingInvitationsByEmail(email: string): Promise<InvitationPreviewDto[]>;
-  findInvitationById(invitationId: string): Promise<InvitationAuditTarget | null>;
+  findInvitationById(
+    invitationId: string,
+  ): Promise<InvitationAuditTarget | null>;
   ping(): Promise<boolean>;
 }
 
@@ -42,14 +48,16 @@ const toUserDto = (record: typeof users.$inferSelect): UserDto => ({
   updatedAt: record.updatedAt.toISOString(),
 });
 
-const parseInvitationRole = (role: string | null): PendingInvitationDto['role'] =>
-  role === 'owner' || role === 'admin' ? role : 'member';
+const parseInvitationRole = (
+  role: string | null,
+): PendingInvitationDto["role"] =>
+  role === "owner" || role === "admin" ? role : "member";
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
 const toInvitationPreviewDto = (row: {
   invitation: typeof invitations.$inferSelect;
-  organization: Pick<typeof organizations.$inferSelect, 'name'>;
+  organization: Pick<typeof organizations.$inferSelect, "name">;
 }): InvitationPreviewDto => ({
   id: row.invitation.id,
   email: row.invitation.email,
@@ -88,7 +96,10 @@ export const createUsersRepository = (): UsersRepository => ({
     return rows.map(({ member, user }) => ({
       id: member.id,
       organizationId: member.organizationId,
-      role: member.role === 'owner' || member.role === 'admin' ? member.role : 'member',
+      role:
+        member.role === "owner" || member.role === "admin"
+          ? member.role
+          : "member",
       createdAt: member.createdAt.toISOString(),
       user: toUserDto(user),
     }));
@@ -99,7 +110,12 @@ export const createUsersRepository = (): UsersRepository => ({
     const rows = await database
       .select()
       .from(invitations)
-      .where(and(eq(invitations.organizationId, organizationId), eq(invitations.status, 'pending')))
+      .where(
+        and(
+          eq(invitations.organizationId, organizationId),
+          eq(invitations.status, "pending"),
+        ),
+      )
       .orderBy(desc(invitations.createdAt));
 
     return rows.map((invitation) => ({
@@ -124,8 +140,16 @@ export const createUsersRepository = (): UsersRepository => ({
         },
       })
       .from(invitations)
-      .innerJoin(organizations, eq(invitations.organizationId, organizations.id))
-      .where(and(eq(invitations.email, normalizeEmail(email)), eq(invitations.status, 'pending')))
+      .innerJoin(
+        organizations,
+        eq(invitations.organizationId, organizations.id),
+      )
+      .where(
+        and(
+          eq(invitations.email, normalizeEmail(email)),
+          eq(invitations.status, "pending"),
+        ),
+      )
       .orderBy(desc(invitations.createdAt));
 
     return rows.map(toInvitationPreviewDto);
@@ -133,7 +157,7 @@ export const createUsersRepository = (): UsersRepository => ({
 
   async findInvitationById(invitationId) {
     const database = getDb();
-    const inviterUsers = aliasedTable(users, 'inviter_users');
+    const inviterUsers = aliasedTable(users, "inviter_users");
     const [invitation] = await database
       .select({
         invitation: invitations,
@@ -145,7 +169,10 @@ export const createUsersRepository = (): UsersRepository => ({
         },
       })
       .from(invitations)
-      .innerJoin(organizations, eq(invitations.organizationId, organizations.id))
+      .innerJoin(
+        organizations,
+        eq(invitations.organizationId, organizations.id),
+      )
       .leftJoin(inviterUsers, eq(invitations.inviterId, inviterUsers.id))
       .where(eq(invitations.id, invitationId))
       .limit(1);

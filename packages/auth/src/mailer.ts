@@ -1,14 +1,14 @@
-import dns from 'node:dns';
+import dns from "node:dns";
 
-import nodemailer from 'nodemailer';
-import { Resend } from 'resend';
+import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-import type { BetterAuthEnv } from '@acme/config';
-import { APP_NAME } from '@acme/shared';
+import type { BetterAuthEnv } from "@acme/config";
+import { APP_NAME } from "@acme/shared";
 
-type AuthEmailType = 'invitation' | 'password-reset' | 'verification';
-type AuthEmailProvider = 'resend' | 'smtp' | 'capture';
-type AuthEmailPayload = Pick<AuthEmailRecord, 'subject' | 'html' | 'text'> & {
+type AuthEmailType = "invitation" | "password-reset" | "verification";
+type AuthEmailProvider = "resend" | "smtp" | "capture";
+type AuthEmailPayload = Pick<AuthEmailRecord, "subject" | "html" | "text"> & {
   from: string;
   to: string;
 };
@@ -61,7 +61,7 @@ const lookupIpv4Address = (
   callback: LookupCallback,
 ): void => {
   const normalizedOptions =
-    typeof options === 'number'
+    typeof options === "number"
       ? {
           family: options,
         }
@@ -109,26 +109,28 @@ const createSmtpClient = (env: BetterAuthEnv): SmtpClient | undefined => {
 
 const getMissingEmailProviderMessage = (env: BetterAuthEnv) => {
   const missingSmtpFields = [
-    env.SMTP_HOST ? undefined : 'SMTP_HOST',
-    env.SMTP_PORT ? undefined : 'SMTP_PORT',
-    env.SMTP_USER ? undefined : 'SMTP_USER',
-    env.SMTP_PASSWORD ? undefined : 'SMTP_PASSWORD',
+    env.SMTP_HOST ? undefined : "SMTP_HOST",
+    env.SMTP_PORT ? undefined : "SMTP_PORT",
+    env.SMTP_USER ? undefined : "SMTP_USER",
+    env.SMTP_PASSWORD ? undefined : "SMTP_PASSWORD",
   ].filter(Boolean);
 
-  return `Auth email provider is not configured. Set RESEND_API_KEY or complete SMTP settings (${missingSmtpFields.join(', ') || 'SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD'}).`;
+  return `Auth email provider is not configured. Set RESEND_API_KEY or complete SMTP settings (${missingSmtpFields.join(", ") || "SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD"}).`;
 };
 
-export const resolveAuthEmailProvider = (env: BetterAuthEnv): AuthEmailProvider => {
+export const resolveAuthEmailProvider = (
+  env: BetterAuthEnv,
+): AuthEmailProvider => {
   if (env.RESEND_API_KEY) {
-    return 'resend';
+    return "resend";
   }
 
   if (hasCompleteSmtpConfig(env)) {
-    return 'smtp';
+    return "smtp";
   }
 
-  if (env.NODE_ENV !== 'production') {
-    return 'capture';
+  if (env.NODE_ENV !== "production") {
+    return "capture";
   }
 
   throw new Error(getMissingEmailProviderMessage(env));
@@ -136,10 +138,16 @@ export const resolveAuthEmailProvider = (env: BetterAuthEnv): AuthEmailProvider 
 
 const sanitizeRecipient = (to: string) => to.trim().toLowerCase();
 
-const supportCopy = 'If you did not request this email, you can safely ignore it.';
+const supportCopy =
+  "If you did not request this email, you can safely ignore it.";
 
-const renderShell = (title: string, intro: string, actionLabel: string, actionUrl: string) => {
-  const escapedUrl = actionUrl.replace(/"/g, '&quot;');
+const renderShell = (
+  title: string,
+  intro: string,
+  actionLabel: string,
+  actionUrl: string,
+) => {
+  const escapedUrl = actionUrl.replace(/"/g, "&quot;");
 
   return {
     html: `
@@ -172,17 +180,18 @@ const dispatchEmail = async (
 ): Promise<{ provider: AuthEmailProvider }> => {
   const provider = resolveAuthEmailProvider(env);
 
-  if (provider === 'capture') {
+  if (provider === "capture") {
     recordCapturedEmail(email);
-    console.info('[auth-email]', { type: email.type, to: email.to, provider });
+    console.info("[auth-email]", { type: email.type, to: email.to, provider });
     return { provider };
   }
 
-  if (provider === 'resend') {
-    const resend = dependencies.resendClient ?? createResendClient(env.RESEND_API_KEY);
+  if (provider === "resend") {
+    const resend =
+      dependencies.resendClient ?? createResendClient(env.RESEND_API_KEY);
 
     if (!resend) {
-      throw new Error('Resend client could not be initialized.');
+      throw new Error("Resend client could not be initialized.");
     }
 
     await resend.emails.send({
@@ -193,14 +202,14 @@ const dispatchEmail = async (
       text: email.text,
     });
 
-    console.info('[auth-email]', { type: email.type, to: email.to, provider });
+    console.info("[auth-email]", { type: email.type, to: email.to, provider });
     return { provider };
   }
 
   const smtpClient = dependencies.smtpClient ?? createSmtpClient(env);
 
   if (!smtpClient) {
-    throw new Error('SMTP client could not be initialized.');
+    throw new Error("SMTP client could not be initialized.");
   }
 
   await smtpClient.sendMail({
@@ -211,7 +220,7 @@ const dispatchEmail = async (
     text: email.text,
   });
 
-  console.info('[auth-email]', { type: email.type, to: email.to, provider });
+  console.info("[auth-email]", { type: email.type, to: email.to, provider });
 
   return { provider };
 };
@@ -226,18 +235,22 @@ export const createAuthMailer = (
   env: BetterAuthEnv,
   dependencies: AuthMailerDependencies = {},
 ) => ({
-  async sendPasswordReset(input: { email: string; name?: string | null; url: string }) {
+  async sendPasswordReset(input: {
+    email: string;
+    name?: string | null;
+    url: string;
+  }) {
     const content = renderShell(
-      'Reset your password',
-      `A password reset was requested${input.name ? ` for ${input.name}` : ''}.`,
-      'Reset password',
+      "Reset your password",
+      `A password reset was requested${input.name ? ` for ${input.name}` : ""}.`,
+      "Reset password",
       input.url,
     );
 
     await dispatchEmail(
       env,
       {
-        type: 'password-reset',
+        type: "password-reset",
         to: sanitizeRecipient(input.email),
         subject: `${APP_NAME}: reset your password`,
         ...content,
@@ -246,18 +259,22 @@ export const createAuthMailer = (
     );
   },
 
-  async sendVerification(input: { email: string; name?: string | null; url: string }) {
+  async sendVerification(input: {
+    email: string;
+    name?: string | null;
+    url: string;
+  }) {
     const content = renderShell(
-      'Verify your email address',
-      `Confirm this address${input.name ? ` for ${input.name}` : ''} so teammates can trust your access.`,
-      'Verify email',
+      "Verify your email address",
+      `Confirm this address${input.name ? ` for ${input.name}` : ""} so teammates can trust your access.`,
+      "Verify email",
       input.url,
     );
 
     await dispatchEmail(
       env,
       {
-        type: 'verification',
+        type: "verification",
         to: sanitizeRecipient(input.email),
         subject: `${APP_NAME}: verify your email`,
         ...content,
@@ -275,15 +292,15 @@ export const createAuthMailer = (
   }) {
     const content = renderShell(
       `Join ${input.organizationName}`,
-      `${input.inviterName ?? 'A teammate'} invited you to join ${input.organizationName} as ${input.role}. Sign in or create an account, then accept the invitation.`,
-      'Review invitation',
+      `${input.inviterName ?? "A teammate"} invited you to join ${input.organizationName} as ${input.role}. Sign in or create an account, then accept the invitation.`,
+      "Review invitation",
       input.url,
     );
 
     await dispatchEmail(
       env,
       {
-        type: 'invitation',
+        type: "invitation",
         to: sanitizeRecipient(input.email),
         subject: `${APP_NAME}: invitation to ${input.organizationName}`,
         ...content,

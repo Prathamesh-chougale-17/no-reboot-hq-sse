@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import * as Sentry from '@sentry/nextjs';
-import { useEffect } from 'react';
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
 
-import { Button } from '@acme/ui';
+import { Button } from "@acme/ui";
 
 export default function Error({
   error,
@@ -25,14 +25,16 @@ export default function Error({
               Something went wrong
             </h1>
             <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-              The web app hit an unexpected error while rendering this page. The failure is safe to
-              retry and, when configured, will be captured by Sentry.
+              The web app hit an unexpected error while rendering this page. The
+              failure is safe to retry and, when configured, will be captured by
+              Sentry.
             </p>
           </div>
         </div>
         <div className="space-y-4 p-4">
           <p className="text-sm text-slate-600 dark:text-slate-300">
-            Resetting will re-run the current route and fetch the latest server state.
+            Resetting will re-run the current route and fetch the latest server
+            state.
           </p>
           <Button onClick={reset}>Try again</Button>
         </div>

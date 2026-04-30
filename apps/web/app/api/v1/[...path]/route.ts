@@ -1,23 +1,24 @@
-import { NextResponse } from 'next/server';
-import { failure } from '@acme/shared';
+import { NextResponse } from "next/server";
+import { failure } from "@acme/shared";
 
-const DEFAULT_API_UPSTREAM_URL = 'http://localhost:3001';
+const DEFAULT_API_UPSTREAM_URL = "http://localhost:3001";
 const HOP_BY_HOP_HEADERS = [
-  'connection',
-  'content-length',
-  'host',
-  'keep-alive',
-  'proxy-authenticate',
-  'proxy-authorization',
-  'te',
-  'trailer',
-  'transfer-encoding',
-  'upgrade',
+  "connection",
+  "content-length",
+  "host",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
 ] as const;
 
-const hasRequestBody = (method: string) => !['GET', 'HEAD'].includes(method.toUpperCase());
+const hasRequestBody = (method: string) =>
+  !["GET", "HEAD"].includes(method.toUpperCase());
 
-const normalizeBaseUrl = (value: string) => value.replace(/\/+$/, '');
+const normalizeBaseUrl = (value: string) => value.replace(/\/+$/, "");
 
 const getApiUpstreamUrl = () =>
   normalizeBaseUrl(
@@ -32,7 +33,7 @@ const forwardRequest = async (
 ) => {
   const { path } = await context.params;
   const requestUrl = new URL(request.url);
-  const upstreamUrl = `${getApiUpstreamUrl()}/api/v1/${path.join('/')}${requestUrl.search}`;
+  const upstreamUrl = `${getApiUpstreamUrl()}/api/v1/${path.join("/")}${requestUrl.search}`;
 
   const headers = new Headers(request.headers);
 
@@ -40,17 +41,19 @@ const forwardRequest = async (
     headers.delete(header);
   }
 
-  headers.set('x-forwarded-host', requestUrl.host);
-  headers.set('x-forwarded-proto', requestUrl.protocol.replace(':', ''));
+  headers.set("x-forwarded-host", requestUrl.host);
+  headers.set("x-forwarded-proto", requestUrl.protocol.replace(":", ""));
 
-  const body = hasRequestBody(request.method) ? await request.arrayBuffer() : undefined;
+  const body = hasRequestBody(request.method)
+    ? await request.arrayBuffer()
+    : undefined;
 
   try {
     const upstreamRequest: RequestInit = {
       method: request.method,
       headers,
-      cache: 'no-store',
-      redirect: 'manual',
+      cache: "no-store",
+      redirect: "manual",
     };
 
     if (body && body.byteLength > 0) {
@@ -73,11 +76,11 @@ const forwardRequest = async (
   } catch (error) {
     return NextResponse.json(
       failure({
-        code: 'UPSTREAM_UNAVAILABLE',
+        code: "UPSTREAM_UNAVAILABLE",
         message:
           error instanceof Error
             ? error.message
-            : 'The API upstream could not be reached from the web server.',
+            : "The API upstream could not be reached from the web server.",
       }),
       {
         status: 502,
@@ -86,8 +89,8 @@ const forwardRequest = async (
   }
 };
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const GET = forwardRequest;
 export const POST = forwardRequest;

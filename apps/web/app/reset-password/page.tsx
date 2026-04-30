@@ -1,5 +1,5 @@
-import { AuthShell } from '@/components/auth/auth-shell';
-import { ResetPasswordForm } from '@/components/auth/reset-password-form';
+import { AuthShell } from "@/components/auth/auth-shell";
+import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 
 export default async function ResetPasswordPage({
   searchParams,
@@ -8,7 +8,7 @@ export default async function ResetPasswordPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const token =
-    resolvedSearchParams && typeof resolvedSearchParams.token === 'string'
+    resolvedSearchParams && typeof resolvedSearchParams.token === "string"
       ? resolvedSearchParams.token
       : undefined;
 

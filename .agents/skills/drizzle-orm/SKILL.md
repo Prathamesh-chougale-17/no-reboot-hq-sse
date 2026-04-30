@@ -20,7 +20,15 @@ You are an expert in Drizzle ORM, TypeScript, and SQL database design with a foc
 ### Basic Table Definition
 
 ```typescript
-import { pgTable, serial, text, varchar, timestamp, boolean, integer } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  text,
+  varchar,
+  timestamp,
+  boolean,
+  integer,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -87,7 +95,13 @@ export const postsRelations = relations(posts, ({ one }) => ({
 ### Adding Indexes
 
 ```typescript
-import { pgTable, serial, varchar, index, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  varchar,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable(
   "users",
@@ -99,7 +113,7 @@ export const users = pgTable(
   (table) => [
     uniqueIndex("email_idx").on(table.email),
     index("name_idx").on(table.name),
-  ]
+  ],
 );
 ```
 
@@ -167,12 +181,7 @@ const activeUsers = await db
 const filteredUsers = await db
   .select()
   .from(users)
-  .where(
-    and(
-      eq(users.isActive, true),
-      like(users.email, "%@example.com")
-    )
-  );
+  .where(and(eq(users.isActive, true), like(users.email, "%@example.com")));
 ```
 
 ### Relational Queries
@@ -301,7 +310,11 @@ export type NewUser = InferInsertModel<typeof users>;
 
 // Use in application code
 function createUser(data: NewUser): Promise<User> {
-  return db.insert(users).values(data).returning().then((r) => r[0]);
+  return db
+    .insert(users)
+    .values(data)
+    .returning()
+    .then((r) => r[0]);
 }
 ```
 
@@ -337,7 +350,7 @@ export const orders = pgTable(
     index("user_id_idx").on(table.userId),
     index("status_idx").on(table.status),
     index("created_at_idx").on(table.createdAt),
-  ]
+  ],
 );
 ```
 
@@ -373,7 +386,10 @@ const paginatedUsers = await db
 // Bad: N+1 query pattern
 const users = await db.select().from(users);
 for (const user of users) {
-  const posts = await db.select().from(posts).where(eq(posts.authorId, user.id));
+  const posts = await db
+    .select()
+    .from(posts)
+    .where(eq(posts.authorId, user.id));
 }
 
 // Good: Use relational queries or joins

@@ -9,7 +9,7 @@ inputs:
   database-migration-url:
     description: Synthetic migration database URL. Falls back to database-url when omitted.
     required: false
-    default: ''
+    default: ""
   app-origin:
     description: Browser origin used by Better Auth and API CORS in CI.
     required: false
@@ -21,7 +21,7 @@ inputs:
   redis-url:
     description: Synthetic Redis URL to use in generated env files for async verification.
     required: false
-    default: ''
+    default: ""
   redis-prefix:
     description: Queue prefix for CI Redis usage.
     required: false
@@ -29,7 +29,7 @@ inputs:
   feature-flags-json:
     description: Optional JSON override map for server-side feature flags in CI.
     required: false
-    default: ''
+    default: ""
   better-auth-secret:
     description: Synthetic Better Auth secret for CI. Do not pass production runtime secrets here.
     required: false

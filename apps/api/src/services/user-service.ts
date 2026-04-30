@@ -1,7 +1,11 @@
-import { auth, canManageMembers, type ResolvedAuthContext } from '@acme/auth';
-import type { ServerFeatureFlags } from '@acme/config';
-import type { AuditRepository, UsersRepository, WebhookRepository } from '@acme/db';
-import { recordOrganizationAccessEvent } from '@acme/jobs';
+import { auth, canManageMembers, type ResolvedAuthContext } from "@acme/auth";
+import type { ServerFeatureFlags } from "@acme/config";
+import type {
+  AuditRepository,
+  UsersRepository,
+  WebhookRepository,
+} from "@acme/db";
+import { recordOrganizationAccessEvent } from "@acme/jobs";
 import type {
   AuditLogListDto,
   CreateInvitationInput,
@@ -13,12 +17,15 @@ import type {
   OnboardingStateDto,
   UsersWorkspaceDto,
   AcceptInvitationResultDto,
-} from '@acme/shared';
+} from "@acme/shared";
 
-import { AppError } from '../lib/http';
+import { AppError } from "../lib/http";
 
 const isUniqueViolation = (error: unknown): boolean =>
-  typeof error === 'object' && error !== null && 'code' in error && error.code === '23505';
+  typeof error === "object" &&
+  error !== null &&
+  "code" in error &&
+  error.code === "23505";
 
 const isBetterAuthConflict = (
   error: unknown,
@@ -31,7 +38,7 @@ const isBetterAuthConflict = (
     message?: string;
   };
 } => {
-  if (typeof error !== 'object' || error === null) {
+  if (typeof error !== "object" || error === null) {
     return false;
   }
 
@@ -52,7 +59,9 @@ const isBetterAuthConflict = (
   const normalizedBodyMessage = candidate.body?.message?.toLowerCase();
 
   return Boolean(
-    normalizedMessage && normalizedBodyMessage && normalizedMessage.includes(normalizedBodyMessage),
+    normalizedMessage &&
+    normalizedBodyMessage &&
+    normalizedMessage.includes(normalizedBodyMessage),
   );
 };
 
@@ -64,7 +73,7 @@ const getBetterAuthError = (
       message: string;
     }
   | undefined => {
-  if (typeof error !== 'object' || error === null) {
+  if (typeof error !== "object" || error === null) {
     return undefined;
   }
 
@@ -76,7 +85,7 @@ const getBetterAuthError = (
     };
   };
 
-  if (typeof candidate.statusCode !== 'number') {
+  if (typeof candidate.statusCode !== "number") {
     return undefined;
   }
 
@@ -85,7 +94,7 @@ const getBetterAuthError = (
     message:
       candidate.body?.message ??
       candidate.message ??
-      'The authentication service rejected the request.',
+      "The authentication service rejected the request.",
   };
 };
 
@@ -100,7 +109,9 @@ type AuditRequestMetadata = {
   userAgent?: string | null;
 };
 
-const toCurrentUserDto = (authContext: ResolvedAuthContext): CurrentUserDto => ({
+const toCurrentUserDto = (
+  authContext: ResolvedAuthContext,
+): CurrentUserDto => ({
   user: {
     id: authContext.user.id,
     name: authContext.user.name ?? null,
@@ -127,18 +138,21 @@ export class UserService {
     return toCurrentUserDto(authContext);
   }
 
-  async getOnboardingState(authContext: ResolvedAuthContext): Promise<OnboardingStateDto> {
-    const pendingInvitations = await this.usersRepository.listPendingInvitationsByEmail(
-      authContext.user.email,
-    );
+  async getOnboardingState(
+    authContext: ResolvedAuthContext,
+  ): Promise<OnboardingStateDto> {
+    const pendingInvitations =
+      await this.usersRepository.listPendingInvitationsByEmail(
+        authContext.user.email,
+      );
 
-    const nextStep: OnboardingStateDto['nextStep'] = authContext.organizationId
-      ? 'ready'
+    const nextStep: OnboardingStateDto["nextStep"] = authContext.organizationId
+      ? "ready"
       : authContext.organizations.length > 0
-        ? 'select-workspace'
+        ? "select-workspace"
         : pendingInvitations.length > 0
-          ? 'join-invitation'
-          : 'create-workspace';
+          ? "join-invitation"
+          : "create-workspace";
 
     return {
       viewer: toCurrentUserDto(authContext),
@@ -148,11 +162,14 @@ export class UserService {
     };
   }
 
-  async getInvitationPreview(invitationId: string): Promise<InvitationPreviewDto> {
-    const invitation = await this.usersRepository.findInvitationById(invitationId);
+  async getInvitationPreview(
+    invitationId: string,
+  ): Promise<InvitationPreviewDto> {
+    const invitation =
+      await this.usersRepository.findInvitationById(invitationId);
 
     if (!invitation) {
-      throw new AppError(404, 'NOT_FOUND', 'Invitation not found');
+      throw new AppError(404, "NOT_FOUND", "Invitation not found");
     }
 
     return {
@@ -165,19 +182,23 @@ export class UserService {
     };
   }
 
-  async getUsersWorkspace(authContext: ResolvedAuthContext): Promise<UsersWorkspaceDto> {
+  async getUsersWorkspace(
+    authContext: ResolvedAuthContext,
+  ): Promise<UsersWorkspaceDto> {
     if (!authContext.organizationId || !authContext.organization) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'An active organization is required before member data can be loaded',
+        "FORBIDDEN",
+        "An active organization is required before member data can be loaded",
       );
     }
 
     const [members, invitations] = await Promise.all([
       this.usersRepository.listOrganizationMembers(authContext.organizationId),
       canManageMembers(authContext.role)
-        ? this.usersRepository.listPendingInvitations(authContext.organizationId)
+        ? this.usersRepository.listPendingInvitations(
+            authContext.organizationId,
+          )
         : Promise.resolve([]),
     ]);
 
@@ -195,14 +216,18 @@ export class UserService {
     auditRequestMetadata: AuditRequestMetadata,
   ): Promise<CreateInvitationResultDto> {
     if (!authContext.organizationId) {
-      throw new AppError(403, 'FORBIDDEN', 'An active organization is required to invite members');
+      throw new AppError(
+        403,
+        "FORBIDDEN",
+        "An active organization is required to invite members",
+      );
     }
 
     if (!canManageMembers(authContext.role)) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'Only owners and admins can invite teammates into the active organization',
+        "FORBIDDEN",
+        "Only owners and admins can invite teammates into the active organization",
       );
     }
 
@@ -221,10 +246,10 @@ export class UserService {
         featureFlags: this.featureFlags,
         event: {
           organizationId: authContext.organizationId,
-          eventType: 'invitation.created',
+          eventType: "invitation.created",
           auditLog: {
             organizationId: authContext.organizationId,
-            eventType: 'invitation.created',
+            eventType: "invitation.created",
             actorUserId: authContext.user.id,
             actorRole: authContext.role,
             targetEmail: input.email,
@@ -239,7 +264,7 @@ export class UserService {
           webhookPayload: {
             occurredAt: new Date().toISOString(),
             organizationId: authContext.organizationId,
-            eventType: 'invitation.created',
+            eventType: "invitation.created",
             actor: {
               userId: authContext.user.id,
               role: authContext.role,
@@ -260,17 +285,25 @@ export class UserService {
       };
     } catch (error) {
       if (isUniqueViolation(error)) {
-        throw new AppError(409, 'CONFLICT', 'A pending invitation already exists for that email');
+        throw new AppError(
+          409,
+          "CONFLICT",
+          "A pending invitation already exists for that email",
+        );
       }
 
       if (
-        isBetterAuthConflict(error, 'USER_IS_ALREADY_INVITED_TO_THIS_ORGANIZATION') ||
-        isBetterAuthConflict(error, 'USER_ALREADY_MEMBER_OF_ORGANIZATION')
+        isBetterAuthConflict(
+          error,
+          "USER_IS_ALREADY_INVITED_TO_THIS_ORGANIZATION",
+        ) ||
+        isBetterAuthConflict(error, "USER_ALREADY_MEMBER_OF_ORGANIZATION")
       ) {
         throw new AppError(
           409,
-          'CONFLICT',
-          error.body?.message ?? 'A pending invitation already exists for that email',
+          "CONFLICT",
+          error.body?.message ??
+            "A pending invitation already exists for that email",
         );
       }
 
@@ -292,8 +325,8 @@ export class UserService {
     if (hasAnyMembership) {
       throw new AppError(
         409,
-        'CONFLICT',
-        'This starter allows one self-created workspace per account by default.',
+        "CONFLICT",
+        "This starter allows one self-created workspace per account by default.",
       );
     }
 
@@ -306,21 +339,25 @@ export class UserService {
         headers: requestHeaders,
       });
 
-      if (!organization || typeof organization !== 'object' || !('id' in organization)) {
+      if (
+        !organization ||
+        typeof organization !== "object" ||
+        !("id" in organization)
+      ) {
         throw new AppError(
           500,
-          'INTERNAL_ERROR',
-          'Organization provisioning completed without a valid response payload',
+          "INTERNAL_ERROR",
+          "Organization provisioning completed without a valid response payload",
         );
       }
 
       const organizationId = organization.id;
 
-      if (typeof organizationId !== 'string') {
+      if (typeof organizationId !== "string") {
         throw new AppError(
           500,
-          'INTERNAL_ERROR',
-          'Organization provisioning completed without a valid organization id',
+          "INTERNAL_ERROR",
+          "Organization provisioning completed without a valid organization id",
         );
       }
 
@@ -337,12 +374,12 @@ export class UserService {
         featureFlags: this.featureFlags,
         event: {
           organizationId,
-          eventType: 'organization.created',
+          eventType: "organization.created",
           auditLog: {
             organizationId,
-            eventType: 'organization.created',
+            eventType: "organization.created",
             actorUserId: authContext.user.id,
-            actorRole: 'owner',
+            actorRole: "owner",
             requestId: auditRequestMetadata.requestId ?? null,
             ipAddress: auditRequestMetadata.ipAddress ?? null,
             userAgent: auditRequestMetadata.userAgent ?? null,
@@ -354,10 +391,10 @@ export class UserService {
           webhookPayload: {
             occurredAt: new Date().toISOString(),
             organizationId,
-            eventType: 'organization.created',
+            eventType: "organization.created",
             actor: {
               userId: authContext.user.id,
-              role: 'owner',
+              role: "owner",
             },
             target: {},
             metadata: {
@@ -375,8 +412,8 @@ export class UserService {
       if (isUniqueViolation(error)) {
         throw new AppError(
           409,
-          'CONFLICT',
-          'An organization with that slug already exists. Choose a different slug.',
+          "CONFLICT",
+          "An organization with that slug already exists. Choose a different slug.",
         );
       }
 
@@ -384,11 +421,12 @@ export class UserService {
 
       if (
         betterAuthError &&
-        (betterAuthError.statusCode === 400 || betterAuthError.statusCode === 409)
+        (betterAuthError.statusCode === 400 ||
+          betterAuthError.statusCode === 409)
       ) {
         throw new AppError(
           betterAuthError.statusCode === 409 ? 409 : 400,
-          betterAuthError.statusCode === 409 ? 'CONFLICT' : 'BAD_REQUEST',
+          betterAuthError.statusCode === 409 ? "CONFLICT" : "BAD_REQUEST",
           betterAuthError.message,
         );
       }
@@ -403,16 +441,20 @@ export class UserService {
     invitationId: string,
     auditRequestMetadata: AuditRequestMetadata,
   ): Promise<AcceptInvitationResultDto> {
-    const invitation = await this.usersRepository.findInvitationById(invitationId);
+    const invitation =
+      await this.usersRepository.findInvitationById(invitationId);
 
     if (!invitation) {
-      throw new AppError(404, 'NOT_FOUND', 'Invitation not found');
+      throw new AppError(404, "NOT_FOUND", "Invitation not found");
     }
 
-    if (normalizeEmail(invitation.email) !== normalizeEmail(authContext.user.email)) {
+    if (
+      normalizeEmail(invitation.email) !==
+      normalizeEmail(authContext.user.email)
+    ) {
       throw new AppError(
         403,
-        'FORBIDDEN',
+        "FORBIDDEN",
         `This invitation is for ${invitation.email}. Sign in with that email address to continue.`,
       );
     }
@@ -436,11 +478,11 @@ export class UserService {
         };
       }
 
-      if (invitation.status !== 'pending') {
+      if (invitation.status !== "pending") {
         throw new AppError(
           409,
-          'CONFLICT',
-          'This invitation has already been used or is no longer pending.',
+          "CONFLICT",
+          "This invitation has already been used or is no longer pending.",
         );
       }
 
@@ -464,10 +506,10 @@ export class UserService {
         featureFlags: this.featureFlags,
         event: {
           organizationId: invitation.organizationId,
-          eventType: 'invitation.accepted',
+          eventType: "invitation.accepted",
           auditLog: {
             organizationId: invitation.organizationId,
-            eventType: 'invitation.accepted',
+            eventType: "invitation.accepted",
             actorUserId: authContext.user.id,
             actorRole: invitation.role,
             targetUserId: authContext.user.id,
@@ -483,7 +525,7 @@ export class UserService {
           webhookPayload: {
             occurredAt: new Date().toISOString(),
             organizationId: invitation.organizationId,
-            eventType: 'invitation.accepted',
+            eventType: "invitation.accepted",
             actor: {
               userId: authContext.user.id,
               role: invitation.role,
@@ -509,11 +551,12 @@ export class UserService {
 
       if (
         betterAuthError &&
-        (betterAuthError.statusCode === 400 || betterAuthError.statusCode === 409)
+        (betterAuthError.statusCode === 400 ||
+          betterAuthError.statusCode === 409)
       ) {
         throw new AppError(
           betterAuthError.statusCode === 409 ? 409 : 400,
-          betterAuthError.statusCode === 409 ? 'CONFLICT' : 'BAD_REQUEST',
+          betterAuthError.statusCode === 409 ? "CONFLICT" : "BAD_REQUEST",
           betterAuthError.message,
         );
       }
@@ -522,19 +565,29 @@ export class UserService {
     }
   }
 
-  async getAuditLogs(authContext: ResolvedAuthContext, limit: number): Promise<AuditLogListDto> {
+  async getAuditLogs(
+    authContext: ResolvedAuthContext,
+    limit: number,
+  ): Promise<AuditLogListDto> {
     if (!authContext.organizationId) {
-      throw new AppError(403, 'FORBIDDEN', 'An active organization is required to view audit logs');
+      throw new AppError(
+        403,
+        "FORBIDDEN",
+        "An active organization is required to view audit logs",
+      );
     }
 
     if (!canManageMembers(authContext.role)) {
       throw new AppError(
         403,
-        'FORBIDDEN',
-        'Only owners and admins can access organization audit activity',
+        "FORBIDDEN",
+        "Only owners and admins can access organization audit activity",
       );
     }
 
-    return this.auditRepository.listOrganizationAuditLogs(authContext.organizationId, limit);
+    return this.auditRepository.listOrganizationAuditLogs(
+      authContext.organizationId,
+      limit,
+    );
   }
 }

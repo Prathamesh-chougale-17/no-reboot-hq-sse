@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const optionalUrl = z
   .string()
@@ -14,8 +14,9 @@ export const DbEnvSchema = z.object({
 
 export type DbEnv = z.infer<typeof DbEnvSchema>;
 
-export const loadDbEnv = (source: Record<string, string | undefined> = process.env): DbEnv =>
-  DbEnvSchema.parse(source);
+export const loadDbEnv = (
+  source: Record<string, string | undefined> = process.env,
+): DbEnv => DbEnvSchema.parse(source);
 
 export const getMigrationDatabaseUrl = (env: DbEnv): string =>
   env.DATABASE_MIGRATION_URL ?? env.DATABASE_URL;
