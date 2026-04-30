@@ -34,7 +34,7 @@ export default defineConfig({
     {
       command: "pnpm --filter @acme/web dev",
       cwd: repoRoot,
-      url: "http://127.0.0.1:3000",
+      url: "http://127.0.0.1:3000/api/v1/docs",
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
       env: {
