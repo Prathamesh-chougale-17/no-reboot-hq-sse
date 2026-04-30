@@ -34,6 +34,7 @@ import {
   useConfigEnvironmentsQuery,
   useConfigServiceTokensQuery,
 } from "@/lib/queries";
+import { ConfigSimulatorPanel } from "@/components/config-simulator-panel";
 
 const valueTypes: ConfigValueType[] = [
   "string",
@@ -904,6 +905,8 @@ export function ConfigWorkspace({ viewer }: { viewer: CurrentUserDto }) {
           </div>
         </div>
       </section>
+
+      <ConfigSimulatorPanel />
 
       <section className={panelClassName}>
         <div className={panelHeaderClassName}>
