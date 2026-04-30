@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { AsyncPlatformEnvSchema } from './platform';
+import { z } from "zod";
+import { AsyncPlatformEnvSchema } from "./platform";
 
 const optionalUrl = z
   .string()
@@ -26,10 +26,12 @@ const optionalBooleanFlag = z
   .trim()
   .optional()
   .transform((value) => value?.toLowerCase())
-  .pipe(z.enum(['true', 'false']).optional())
-  .transform((value) => value === 'true');
+  .pipe(z.enum(["true", "false"]).optional())
+  .transform((value) => value === "true");
 
-const normalizeOptionalValue = (value: string | undefined): string | undefined => {
+const normalizeOptionalValue = (
+  value: string | undefined,
+): string | undefined => {
   const trimmed = value?.trim();
   return trimmed ? trimmed : undefined;
 };
@@ -41,20 +43,25 @@ const deriveHostedUrl = (value: string | undefined): string | undefined => {
     return undefined;
   }
 
-  return hostedUrl.startsWith('http://') || hostedUrl.startsWith('https://')
+  return hostedUrl.startsWith("http://") || hostedUrl.startsWith("https://")
     ? hostedUrl
     : `https://${hostedUrl}`;
 };
 
 export const BetterAuthEnvSchema = z
   .object({
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
     DATABASE_URL: z.url(),
     BETTER_AUTH_SECRET: z.string().trim().min(32),
-    BETTER_AUTH_URL: z.url().default('http://localhost:3000'),
-    APP_ORIGIN: z.url().default('http://localhost:3000'),
-    API_CORS_ORIGIN: z.string().default('http://localhost:3000'),
-    AUTH_FROM_EMAIL: z.string().trim().default('Acme Platform <auth@acme-platform.local>'),
+    BETTER_AUTH_URL: z.url().default("http://localhost:3000"),
+    APP_ORIGIN: z.url().default("http://localhost:3000"),
+    API_CORS_ORIGIN: z.string().default("http://localhost:3000"),
+    AUTH_FROM_EMAIL: z
+      .string()
+      .trim()
+      .default("No Reboot HQ <auth@no-reboot-hq.local>"),
     RESEND_API_KEY: optionalString,
     SMTP_HOST: optionalString,
     SMTP_PORT: optionalPort,
@@ -73,9 +80,10 @@ export const loadBetterAuthEnv = (
   const baseUrl =
     normalizeOptionalValue(source.BETTER_AUTH_URL) ??
     deriveHostedUrl(source.VERCEL_URL) ??
-    'http://localhost:3000';
+    "http://localhost:3000";
   const appOrigin = normalizeOptionalValue(source.APP_ORIGIN) ?? baseUrl;
-  const apiCorsOrigin = normalizeOptionalValue(source.API_CORS_ORIGIN) ?? appOrigin;
+  const apiCorsOrigin =
+    normalizeOptionalValue(source.API_CORS_ORIGIN) ?? appOrigin;
 
   return BetterAuthEnvSchema.parse({
     ...source,

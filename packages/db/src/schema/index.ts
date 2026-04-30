@@ -1,3 +1,4 @@
-export * from './audit';
-export * from './auth';
-export * from './webhooks';
+export * from "./audit";
+export * from "./auth";
+export * from "./config";
+export * from "./webhooks";

@@ -57,7 +57,7 @@
       "pluginVersion": "12.1.1",
       "targets": [
         {
-          "expr": "up{job=\"acme-api\"}",
+          "expr": "up{job=\"no-reboot-hq-api\"}",
           "refId": "A"
         }
       ],
@@ -87,7 +87,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(acme_api_http_requests_total[5m])) by (status_code)",
+          "expr": "sum(rate(no_reboot_hq_api_http_requests_total[5m])) by (status_code)",
           "legendFormat": "{{status_code}}",
           "refId": "A"
         }
@@ -121,7 +121,7 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(acme_api_http_request_duration_ms_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(no_reboot_hq_api_http_request_duration_ms_bucket[5m])) by (le))",
           "refId": "A"
         }
       ],
@@ -151,7 +151,7 @@
       },
       "targets": [
         {
-          "expr": "{service=\"acme-api\"}",
+          "expr": "{service=\"no-reboot-hq-api\"}",
           "refId": "A"
         }
       ],
@@ -196,7 +196,7 @@
   "refresh": "10s",
   "schemaVersion": 41,
   "style": "dark",
-  "tags": ["acme", "starter"],
+  "tags": ["no-reboot-hq", "dynamic-config"],
   "templating": {
     "list": []
   },
@@ -205,7 +205,7 @@
     "to": "now"
   },
   "timezone": "browser",
-  "title": "Acme Platform Overview",
-  "uid": "acme-platform-overview",
+  "title": "No Reboot HQ Overview",
+  "uid": "no-reboot-hq-overview",
   "version": 1
 }

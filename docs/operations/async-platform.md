@@ -15,7 +15,7 @@ Use this runbook when deploying or operating the Redis-backed async platform lay
   - points to Railway Redis in staging and production
 - `REDIS_PREFIX`
   - queue namespace prefix
-  - default: `acme-platform`
+  - default: `no-reboot-hq`
 - `FEATURE_FLAGS_JSON`
   - optional server-only JSON override map
   - supported keys:

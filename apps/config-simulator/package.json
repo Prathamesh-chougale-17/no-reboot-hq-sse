@@ -1,0 +1,22 @@
+{
+  "name": "@acme/config-simulator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "watch": "pnpm exec dotenv -e ../api/.env -- tsx watch src/index.ts",
+    "start": "pnpm exec dotenv -e ../api/.env -- tsx src/index.ts",
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec tsc --noEmit"
+  },
+  "dependencies": {
+    "@acme/shared": "workspace:*",
+    "dotenv-cli": "^11.0.0",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:tooling",
+    "eslint": "catalog:tooling",
+    "typescript": "catalog:tooling"
+  }
+}

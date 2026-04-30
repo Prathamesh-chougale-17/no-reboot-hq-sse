@@ -1,22 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { BetterAuthEnv } from '@acme/config';
+import type { BetterAuthEnv } from "@acme/config";
 
 import {
   clearCapturedAuthEmails,
   createAuthMailer,
   getCapturedAuthEmails,
   resolveAuthEmailProvider,
-} from './mailer';
+} from "./mailer";
 
 const createEnv = (overrides: Partial<BetterAuthEnv> = {}): BetterAuthEnv => ({
-  NODE_ENV: 'development',
-  DATABASE_URL: 'postgres://postgres:postgres@localhost:5432/acme_platform',
-  BETTER_AUTH_SECRET: '12345678901234567890123456789012',
-  BETTER_AUTH_URL: 'http://localhost:3000',
-  APP_ORIGIN: 'http://localhost:3000',
-  API_CORS_ORIGIN: 'http://localhost:3000',
-  AUTH_FROM_EMAIL: 'Acme Platform <auth@acme-platform.local>',
+  NODE_ENV: "development",
+  DATABASE_URL: "postgres://postgres:postgres@localhost:5432/acme_platform",
+  BETTER_AUTH_SECRET: "12345678901234567890123456789012",
+  BETTER_AUTH_URL: "http://localhost:3000",
+  APP_ORIGIN: "http://localhost:3000",
+  API_CORS_ORIGIN: "http://localhost:3000",
+  AUTH_FROM_EMAIL: "No Reboot HQ <auth@no-reboot-hq.local>",
   RESEND_API_KEY: undefined,
   SMTP_HOST: undefined,
   SMTP_PORT: undefined,
@@ -25,26 +25,31 @@ const createEnv = (overrides: Partial<BetterAuthEnv> = {}): BetterAuthEnv => ({
   SMTP_PASSWORD: undefined,
   NEXT_PUBLIC_API_BASE_URL: undefined,
   REDIS_URL: undefined,
-  REDIS_PREFIX: 'acme-platform',
+  REDIS_PREFIX: "no-reboot-hq",
   FEATURE_FLAGS_JSON: undefined,
+  KAFKA_BROKERS: undefined,
+  CONFIG_EVENTS_TOPIC: "config.events",
+  CONFIG_ENCRYPTION_KEY: "local-config-encryption-key-32-bytes",
+  CONFIG_TOKEN_PEPPER: "local-config-token-pepper-32-bytes",
+  CONFIG_OUTBOX_PUBLISH_INTERVAL_MS: 5000,
   ...overrides,
 });
 
-describe('auth mailer', () => {
+describe("auth mailer", () => {
   beforeEach(() => {
     clearCapturedAuthEmails();
     vi.restoreAllMocks();
   });
 
-  it('prefers resend when resend and smtp are both configured', async () => {
+  it("prefers resend when resend and smtp are both configured", async () => {
     const resendSend = vi.fn().mockResolvedValue(undefined);
     const smtpSend = vi.fn().mockResolvedValue(undefined);
     const env = createEnv({
-      RESEND_API_KEY: 're_test',
-      SMTP_HOST: 'smtp.example.com',
+      RESEND_API_KEY: "re_test",
+      SMTP_HOST: "smtp.example.com",
       SMTP_PORT: 587,
-      SMTP_USER: 'mailer',
-      SMTP_PASSWORD: 'password',
+      SMTP_USER: "mailer",
+      SMTP_PASSWORD: "password",
     });
 
     const mailer = createAuthMailer(env, {
@@ -52,70 +57,72 @@ describe('auth mailer', () => {
       smtpClient: { sendMail: smtpSend },
     });
 
-    expect(resolveAuthEmailProvider(env)).toBe('resend');
+    expect(resolveAuthEmailProvider(env)).toBe("resend");
 
     await mailer.sendInvitation({
-      email: 'teammate@example.com',
-      organizationName: 'Acme Platform',
-      role: 'member',
-      url: 'http://localhost:3000/accept-invite?invitationId=test',
+      email: "teammate@example.com",
+      organizationName: "No Reboot HQ",
+      role: "member",
+      url: "http://localhost:3000/accept-invite?invitationId=test",
     });
 
     expect(resendSend).toHaveBeenCalledOnce();
     expect(smtpSend).not.toHaveBeenCalled();
   });
 
-  it('uses smtp when resend is not configured and smtp settings are complete', async () => {
+  it("uses smtp when resend is not configured and smtp settings are complete", async () => {
     const smtpSend = vi.fn().mockResolvedValue(undefined);
     const env = createEnv({
-      SMTP_HOST: 'smtp.example.com',
+      SMTP_HOST: "smtp.example.com",
       SMTP_PORT: 587,
-      SMTP_USER: 'mailer',
-      SMTP_PASSWORD: 'password',
+      SMTP_USER: "mailer",
+      SMTP_PASSWORD: "password",
     });
 
     const mailer = createAuthMailer(env, {
       smtpClient: { sendMail: smtpSend },
     });
 
-    expect(resolveAuthEmailProvider(env)).toBe('smtp');
+    expect(resolveAuthEmailProvider(env)).toBe("smtp");
 
     await mailer.sendVerification({
-      email: 'user@example.com',
-      name: 'Acme User',
-      url: 'http://localhost:3000/api/auth/verify',
+      email: "user@example.com",
+      name: "Acme User",
+      url: "http://localhost:3000/api/auth/verify",
     });
 
     expect(smtpSend).toHaveBeenCalledOnce();
   });
 
-  it('falls back to capture in non-production when no providers are configured', async () => {
+  it("falls back to capture in non-production when no providers are configured", async () => {
     const env = createEnv();
     const mailer = createAuthMailer(env);
 
-    expect(resolveAuthEmailProvider(env)).toBe('capture');
+    expect(resolveAuthEmailProvider(env)).toBe("capture");
 
     await mailer.sendPasswordReset({
-      email: 'user@example.com',
-      name: 'Acme User',
-      url: 'http://localhost:3000/reset-password?token=test',
+      email: "user@example.com",
+      name: "Acme User",
+      url: "http://localhost:3000/reset-password?token=test",
     });
 
     expect(getCapturedAuthEmails()).toHaveLength(1);
-    expect(getCapturedAuthEmails()[0]?.type).toBe('password-reset');
+    expect(getCapturedAuthEmails()[0]?.type).toBe("password-reset");
   });
 
-  it('throws in production when no providers are configured', async () => {
-    const env = createEnv({ NODE_ENV: 'production' });
+  it("throws in production when no providers are configured", async () => {
+    const env = createEnv({ NODE_ENV: "production" });
     const mailer = createAuthMailer(env);
 
-    expect(() => resolveAuthEmailProvider(env)).toThrowError(/RESEND_API_KEY|SMTP_HOST/);
+    expect(() => resolveAuthEmailProvider(env)).toThrowError(
+      /RESEND_API_KEY|SMTP_HOST/,
+    );
     await expect(
       mailer.sendInvitation({
-        email: 'teammate@example.com',
-        organizationName: 'Acme Platform',
-        role: 'member',
-        url: 'https://app.example.com/accept-invite?invitationId=test',
+        email: "teammate@example.com",
+        organizationName: "No Reboot HQ",
+        role: "member",
+        url: "https://app.example.com/accept-invite?invitationId=test",
       }),
     ).rejects.toThrowError(/RESEND_API_KEY|SMTP_HOST/);
   });

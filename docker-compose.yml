@@ -6,11 +6,11 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - '${POSTGRES_PORT:-5433}:5432'
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres -d acme_platform']
+      test: ["CMD-SHELL", "pg_isready -U postgres -d acme_platform"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -18,53 +18,97 @@ services:
   redis:
     image: redis:8.2-alpine
     ports:
-      - '${REDIS_PORT:-6379}:6379'
-    command: ['redis-server', '--save', '', '--appendonly', 'no']
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10
 
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:v26.1.5
+    command:
+      - redpanda
+      - start
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --overprovisioned
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda:9092,external://localhost:19092
+      - --rpc-addr
+      - 0.0.0.0:33145
+      - --advertise-rpc-addr
+      - redpanda:33145
+    ports:
+      - "${REDPANDA_KAFKA_PORT:-19092}:19092"
+      - "${REDPANDA_ADMIN_PORT:-9644}:9644"
+    volumes:
+      - redpanda-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD-SHELL", 'rpk cluster health | grep -E "Healthy:.+true"']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:v3.5.1
+    depends_on:
+      redpanda:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    ports:
+      - "${REDPANDA_CONSOLE_PORT:-8080}:8080"
+
   loki:
     image: grafana/loki:3.4.2
-    command: ['-config.file=/etc/loki/config.yml']
+    command: ["-config.file=/etc/loki/config.yml"]
     ports:
-      - '${LOKI_PORT:-3100}:3100'
+      - "${LOKI_PORT:-3100}:3100"
     volumes:
       - ./infra/observability/loki-config.yml:/etc/loki/config.yml:ro
 
   tempo:
     image: grafana/tempo:2.7.2
-    command: ['-config.file=/etc/tempo.yaml']
+    command: ["-config.file=/etc/tempo.yaml"]
     ports:
-      - '${TEMPO_PORT:-3200}:3200'
+      - "${TEMPO_PORT:-3200}:3200"
     volumes:
       - ./infra/observability/tempo.yaml:/etc/tempo.yaml:ro
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.126.0
-    command: ['--config=/etc/otelcol-contrib/config.yaml']
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
     depends_on:
       - tempo
     ports:
-      - '${OTEL_GRPC_PORT:-4317}:4317'
-      - '${OTEL_HTTP_PORT:-4318}:4318'
-      - '${OTEL_METRICS_PORT:-8889}:8889'
+      - "${OTEL_GRPC_PORT:-4317}:4317"
+      - "${OTEL_HTTP_PORT:-4318}:4318"
+      - "${OTEL_METRICS_PORT:-8889}:8889"
     volumes:
       - ./infra/observability/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
 
   prometheus:
     image: prom/prometheus:v3.5.0
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--web.enable-remote-write-receiver'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver"
     depends_on:
       - otel-collector
     ports:
-      - '${PROMETHEUS_PORT:-9090}:9090'
+      - "${PROMETHEUS_PORT:-9090}:9090"
     extra_hosts:
-      - 'host.docker.internal:host-gateway'
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
@@ -78,7 +122,7 @@ services:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
     ports:
-      - '${GRAFANA_PORT:-3002}:3000'
+      - "${GRAFANA_PORT:-3002}:3000"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
@@ -86,3 +130,4 @@ services:
 volumes:
   postgres-data:
   grafana-data:
+  redpanda-data:

@@ -29,6 +29,13 @@
       "when": 1776096598934,
       "tag": "0003_lazy_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777484366293,
+      "tag": "0004_striped_archangel",
+      "breakpoints": true
     }
   ]
 }

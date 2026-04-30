@@ -15,6 +15,7 @@
     "@acme/auth": "workspace:*",
     "@acme/config": "workspace:*",
     "@acme/db": "workspace:*",
+    "@acme/events": "workspace:*",
     "@acme/jobs": "workspace:*",
     "@acme/logger": "workspace:*",
     "@acme/observability": "workspace:*",

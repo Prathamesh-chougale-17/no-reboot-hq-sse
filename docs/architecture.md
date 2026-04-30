@@ -2,7 +2,7 @@
 
 ## Overview
 
-Acme Platform is a Turborepo monorepo with pnpm workspaces. Two apps (`web`, `api`) consume shared packages. Apps are deployed independently; packages are never published to npm individually — they are workspace-internal only.
+No Reboot HQ is a Turborepo monorepo with pnpm workspaces. Three apps (`web`, `api`, `config-simulator`) consume shared packages. Apps are deployed independently; packages are never published to npm individually — they are workspace-internal only.
 
 ## Application Layer
 
@@ -15,6 +15,7 @@ Responsibilities:
 - Same-origin invitation bridge at `POST /api/invitations` (proxied to the API)
 - Middleware (`proxy.ts`) for fast cookie-based redirects before SSR
 - TanStack Query hooks for all server state
+- No Reboot HQ config workspace for apps, environments, versioned values, service tokens, rollbacks, and live propagation status
 
 Auth lives here because Better Auth requires the auth route handler to be on the same origin as the frontend for cookie-based sessions.
 
@@ -26,9 +27,18 @@ Responsibilities:
 - Session resolution on every protected request via `@acme/auth`
 - Business logic delegation to service functions
 - Prometheus metrics at `/metrics`
-- BullMQ worker entrypoint (`src/worker.ts`) — runs as a separate process in production
+- Config client snapshot and SSE routes for service-token clients
+- BullMQ worker entrypoint (`src/worker.ts`) — runs as a separate process in production and publishes config outbox events to Redpanda
 
 The worker shares all package dependencies with the HTTP server but runs independently so queue consumers don't block request handling.
+
+### `apps/config-simulator` — Node Demo Client
+
+Responsibilities:
+
+- Uses a scoped service token to fetch `/api/v1/client/config`
+- Subscribes to `/api/v1/client/config/events` with SSE
+- Refetches and logs a fresh snapshot when config changes propagate
 
 ## Package Layer
 
@@ -53,6 +63,14 @@ Owns:
 - Repository functions — typed read/write operations for each entity
 
 Apps and packages import repository functions directly. There is no ORM model layer or active-record pattern — repositories are plain functions.
+
+### `@acme/events`
+
+Owns:
+
+- Kafka-compatible Redpanda producer/consumer setup via KafkaJS
+- Config event topic creation
+- Config event publishing and per-process SSE relay subscriptions
 
 ### `@acme/config`
 
@@ -173,6 +191,20 @@ POST /api/v1/invitations
 ### Domain Events
 
 ```
+
+### Dynamic Config Propagation
+
+```
+
+Dashboard POST /api/v1/config/environments/:id/entries
+→ apps/api validates session RBAC and expectedVersion
+→ @acme/db transaction writes entry/version, audit log, and outbox row
+→ API worker reads pending outbox rows
+→ @acme/events publishes sanitized config event to Redpanda
+→ API SSE relay consumes Redpanda and streams matching events
+→ config-simulator or service client refetches snapshot without restart
+
+```
 POST /api/v1/invitations/:id/accept
   → @acme/db write (org member create)
   → @acme/db write (audit log)
@@ -196,6 +228,9 @@ Drizzle is SQL-first with zero runtime overhead. Schema is TypeScript, migration
 
 **Why BullMQ instead of a managed queue?**
 Redis is already a dependency for session work. BullMQ gives persistent, retriable, typed queues without adding another infrastructure service. The feature-flag guard means the platform degrades gracefully when Redis is unavailable.
+
+**Why Redpanda + SSE for config propagation?**
+Redpanda provides a Kafka-compatible event backbone that is easy to run locally, while the transactional outbox protects config writes when the broker is down. SSE is enough because config updates are server-to-client only.
 
 **Why pnpm + Turborepo?**
 pnpm's strict dependency isolation prevents phantom dependencies. Turborepo's task graph and remote caching make CI fast — only packages affected by a change are rebuilt.

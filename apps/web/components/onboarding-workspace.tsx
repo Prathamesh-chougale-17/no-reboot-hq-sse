@@ -1,48 +1,63 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, useTransition } from 'react';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
-import { Alert, AlertDescription, AlertTitle, Button, Input, Skeleton } from '@acme/ui';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+  Button,
+  Input,
+  Skeleton,
+} from "@acme/ui";
 
-import { authClient } from '@/lib/auth-client';
-import { apiClient } from '@/lib/api-client';
-import { useOnboardingQuery } from '@/lib/queries';
+import { authClient } from "@/lib/auth-client";
+import { apiClient } from "@/lib/api-client";
+import { useOnboardingQuery } from "@/lib/queries";
 
 const slugify = (value: string) =>
   value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
     .slice(0, 80);
 
 const getErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : 'Unable to complete onboarding right now.';
+  error instanceof Error
+    ? error.message
+    : "Unable to complete onboarding right now.";
 
 const pageHeaderClassName =
-  'flex flex-col gap-4 border-b border-slate-200 pb-5 pt-3 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between';
+  "flex flex-col gap-4 border-b border-slate-200 pb-5 pt-3 dark:border-slate-800 lg:flex-row lg:items-end lg:justify-between";
 const eyebrowClassName =
-  'text-xs font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400';
+  "text-xs font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400";
 const pageTitleClassName =
-  'mt-1 text-4xl font-semibold leading-none text-slate-950 dark:text-slate-50 md:text-6xl';
+  "mt-1 text-4xl font-semibold leading-none text-slate-950 dark:text-slate-50 md:text-6xl";
 const pageSubtitleClassName =
-  'mt-3 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300';
+  "mt-3 max-w-3xl text-base leading-7 text-slate-600 dark:text-slate-300";
 const panelClassName =
-  'rounded-xl border border-slate-200 bg-white/85 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none';
+  "rounded-xl border border-slate-200 bg-white/85 shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-none";
 const panelHeaderClassName =
-  'flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800';
-const panelBodyClassName = 'p-4';
-const sectionTitleClassName = 'text-base font-semibold text-slate-950 dark:text-slate-50';
-const sectionCopyClassName = 'mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400';
+  "flex items-start justify-between gap-4 border-b border-slate-200 p-4 dark:border-slate-800";
+const panelBodyClassName = "p-4";
+const sectionTitleClassName =
+  "text-base font-semibold text-slate-950 dark:text-slate-50";
+const sectionCopyClassName =
+  "mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400";
 const dataRowClassName =
-  'flex items-center justify-between gap-4 border-b border-slate-200 px-4 py-3 last:border-b-0 dark:border-slate-800';
+  "flex items-center justify-between gap-4 border-b border-slate-200 px-4 py-3 last:border-b-0 dark:border-slate-800";
 
-export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: string }) {
+export function OnboardingWorkspace({
+  redirectTo = "/users",
+}: {
+  redirectTo?: string;
+}) {
   const router = useRouter();
   const onboardingQuery = useOnboardingQuery();
-  const [workspaceName, setWorkspaceName] = useState('');
+  const [workspaceName, setWorkspaceName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isCreating, startCreating] = useTransition();
   const [isSelecting, startSelecting] = useTransition();
@@ -50,19 +65,19 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
   const state = onboardingQuery.data;
   const organizations = state?.viewer.organizations ?? [];
   const onlyOrganization = organizations.length === 1 ? organizations[0] : null;
-  const destination = useMemo(() => redirectTo || '/users', [redirectTo]);
+  const destination = useMemo(() => redirectTo || "/users", [redirectTo]);
 
   useEffect(() => {
     if (!state) {
       return;
     }
 
-    if (state.nextStep === 'ready') {
+    if (state.nextStep === "ready") {
       router.replace(destination as never);
       return;
     }
 
-    if (state.nextStep === 'select-workspace' && onlyOrganization) {
+    if (state.nextStep === "select-workspace" && onlyOrganization) {
       setError(null);
       startSelecting(async () => {
         try {
@@ -75,7 +90,9 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
           };
 
           if (response.error) {
-            setError(response.error.message ?? 'Unable to activate the workspace.');
+            setError(
+              response.error.message ?? "Unable to activate the workspace.",
+            );
             return;
           }
 
@@ -101,7 +118,9 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
         };
 
         if (response.error) {
-          setError(response.error.message ?? 'Unable to activate the workspace.');
+          setError(
+            response.error.message ?? "Unable to activate the workspace.",
+          );
           return;
         }
 
@@ -122,7 +141,7 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
         const slug = slugify(workspaceName);
 
         if (!slug) {
-          setError('Please choose a workspace name.');
+          setError("Please choose a workspace name.");
           return;
         }
 
@@ -161,7 +180,9 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
     return (
       <Alert variant="destructive">
         <AlertTitle>Onboarding unavailable</AlertTitle>
-        <AlertDescription>{getErrorMessage(onboardingQuery.error)}</AlertDescription>
+        <AlertDescription>
+          {getErrorMessage(onboardingQuery.error)}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -173,7 +194,8 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
           <p className={eyebrowClassName}>Onboarding</p>
           <h1 className={pageTitleClassName}>Choose Workspace</h1>
           <p className={pageSubtitleClassName}>
-            Join an invited organization or create the first workspace for your account.
+            Join an invited organization or create the first workspace for your
+            account.
           </p>
         </div>
       </section>
@@ -190,7 +212,9 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
           <div className={panelHeaderClassName}>
             <div>
               <h2 className={sectionTitleClassName}>Available Workspaces</h2>
-              <p className={sectionCopyClassName}>Memberships and invitations for this account.</p>
+              <p className={sectionCopyClassName}>
+                Memberships and invitations for this account.
+              </p>
             </div>
           </div>
           <div>
@@ -216,7 +240,7 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
                 ))
               : null}
 
-            {state.nextStep === 'select-workspace' && organizations.length > 1
+            {state.nextStep === "select-workspace" && organizations.length > 1
               ? organizations.map((organization) => (
                   <div key={organization.id} className={dataRowClassName}>
                     <div className="min-w-0">
@@ -232,13 +256,13 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
                       disabled={isSelecting}
                       onClick={() => activateWorkspace(organization.id)}
                     >
-                      {isSelecting ? 'Activating' : 'Use workspace'}
+                      {isSelecting ? "Activating" : "Use workspace"}
                     </Button>
                   </div>
                 ))
               : null}
 
-            {state.nextStep === 'select-workspace' && onlyOrganization ? (
+            {state.nextStep === "select-workspace" && onlyOrganization ? (
               <div className={dataRowClassName}>
                 <div>
                   <p className="font-medium text-slate-950 dark:text-slate-50">
@@ -248,16 +272,22 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
                     This workspace is being selected for the session.
                   </p>
                 </div>
-                <Button disabled>{isSelecting ? 'Activating' : 'Activate'}</Button>
+                <Button disabled>
+                  {isSelecting ? "Activating" : "Activate"}
+                </Button>
               </div>
             ) : null}
 
             {state.pendingInvitations.length === 0 &&
-            !(state.nextStep === 'select-workspace' && organizations.length > 0) ? (
+            !(
+              state.nextStep === "select-workspace" && organizations.length > 0
+            ) ? (
               <div className={panelBodyClassName}>
                 <Alert>
                   <AlertTitle>No workspaces found</AlertTitle>
-                  <AlertDescription>Create a workspace to continue.</AlertDescription>
+                  <AlertDescription>
+                    Create a workspace to continue.
+                  </AlertDescription>
                 </Alert>
               </div>
             ) : null}
@@ -269,7 +299,9 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
             <div className={panelHeaderClassName}>
               <div>
                 <h2 className={sectionTitleClassName}>Create Workspace</h2>
-                <p className={sectionCopyClassName}>Use a clear organization name.</p>
+                <p className={sectionCopyClassName}>
+                  Use a clear organization name.
+                </p>
               </div>
             </div>
             <div className={panelBodyClassName}>
@@ -285,12 +317,12 @@ export function OnboardingWorkspace({ redirectTo = '/users' }: { redirectTo?: st
                     id="workspace-name"
                     value={workspaceName}
                     onChange={(event) => setWorkspaceName(event.target.value)}
-                    placeholder="Acme Platform"
+                    placeholder="No Reboot HQ"
                     required
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={isCreating}>
-                  {isCreating ? 'Creating workspace' : 'Create workspace'}
+                  {isCreating ? "Creating workspace" : "Create workspace"}
                 </Button>
               </form>
             </div>

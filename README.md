@@ -1,6 +1,8 @@
-# Acme Platform
+# No Reboot HQ
 
-Production-grade SaaS monorepo starter. Scaffold it in one command and get a full-stack TypeScript platform with auth, async jobs, observability, and CI/CD wired up from day one.
+Production-deep dynamic configuration platform for apps that need runtime config, encrypted secrets, durable propagation, and zero-restart reloads.
+
+This repo still includes the original scaffold release tooling:
 
 ```bash
 npm create acme-platform@latest my-app
@@ -19,6 +21,7 @@ npx create-acme-platform my-app --no-skills
 | Auth          | Better Auth — email/password, org RBAC, invitations, password reset           |
 | Database      | PostgreSQL + Drizzle ORM — schema, migrations, repositories                   |
 | Async         | Redis + BullMQ — queued invitation emails, outgoing webhooks                  |
+| Config Events | Redpanda Kafka API + transactional outbox + SSE live updates                  |
 | Observability | Grafana · Loki · Tempo · Prometheus · OpenTelemetry                           |
 | Tooling       | Turborepo · pnpm workspaces · ESLint · Prettier · Husky · Vitest · Playwright |
 
@@ -38,13 +41,18 @@ graph TB
 
     subgraph apps/api ["apps/api · Hono"]
         API["HTTP Routes /api/v1/*"]
-        Worker["BullMQ Worker"]
+        Worker["BullMQ Worker + Config Outbox Publisher"]
         Metrics["/metrics"]
+    end
+
+    subgraph apps/config-simulator ["apps/config-simulator · Node"]
+        Simulator["Service-token client\nSnapshot + SSE reload demo"]
     end
 
     subgraph packages
         Auth["@acme/auth\nBetter Auth config · session · RBAC · mailer"]
         DB["@acme/db\nDrizzle schema · migrations · repositories"]
+        Events["@acme/events\nKafka-compatible config event bus"]
         Jobs["@acme/jobs\nQueue definitions · domain events"]
         Config["@acme/config\nZod env validation"]
         Logger["@acme/logger\nPino · Loki transport"]
@@ -55,6 +63,8 @@ graph TB
     subgraph infra ["Local Infrastructure · docker compose"]
         PG["PostgreSQL :5433"]
         Redis["Redis :6379"]
+        Redpanda["Redpanda :19092"]
+        Console["Redpanda Console :8080"]
         OTel["OTel Collector"]
         Loki["Loki"]
         Tempo["Tempo"]
@@ -66,12 +76,18 @@ graph TB
     Middleware --> WebApp
     Middleware --> AuthRoute
     Browser --> API
+    Simulator --> API
     AuthRoute --> Auth
     Auth --> DB
+    API --> Events
     API --> Auth
     API --> Jobs
     API --> Metrics
+    Worker --> Events
     Worker --> Jobs
+    Events --> Redpanda
+    Redpanda --> API
+    Redpanda --> Console
     Jobs --> Redis
     API --> Logger
     API --> Obs
@@ -93,6 +109,7 @@ Browser → middleware (cookie check) → Next.js page (SSR session validate)
 
 Browser → Hono API → session resolve → service → repository → PostgreSQL
                    → BullMQ job enqueue → Redis → Worker picks up → mailer / webhook delivery
+                   → config mutation → repository transaction → outbox → worker → Redpanda → SSE
                    → Pino logger → Loki
                    → OTel span → Collector → Tempo
 ```
@@ -102,6 +119,7 @@ Browser → Hono API → session resolve → service → repository → PostgreS
 ```
 apps/
   api/          Hono API service + BullMQ worker entrypoint
+  config-simulator/ Service-token snapshot + SSE reload demo
   web/          Next.js frontend + Better Auth route handler
   web-e2e/      Playwright smoke tests
 
@@ -109,6 +127,7 @@ packages/
   auth/         Better Auth config, RBAC helpers, auth mailer
   config/       Zod-based env validation (shared across apps)
   db/           Drizzle schema, migrations, repositories
+  events/       Kafka-compatible Redpanda producer/consumer utilities
   cli/          TypeScript source for the create-acme-platform CLI
   jobs/         BullMQ queue definitions, domain event fan-out
   logger/       Pino structured logger + Loki transport
@@ -173,12 +192,13 @@ pnpm db:migrate      # apply migrations
 pnpm dev
 ```
 
-| Service    | URL                   |
-| ---------- | --------------------- |
-| Web        | http://localhost:3000 |
-| API        | http://localhost:3001 |
-| Grafana    | http://localhost:3002 |
-| Prometheus | http://localhost:9090 |
+| Service          | URL                   |
+| ---------------- | --------------------- |
+| Web              | http://localhost:3000 |
+| API              | http://localhost:3001 |
+| Redpanda Console | http://localhost:8080 |
+| Grafana          | http://localhost:3002 |
+| Prometheus       | http://localhost:9090 |
 
 ## Common Commands
 
@@ -192,6 +212,7 @@ pnpm test:e2e         # Playwright smoke tests
 pnpm format           # Prettier write
 pnpm db:migrate       # apply Drizzle migrations
 pnpm db:studio        # open Drizzle Studio
+CONFIG_SERVICE_TOKEN=<token> pnpm --filter @acme/config-simulator start
 ```
 
 ## Releasing the CLI

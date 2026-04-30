@@ -63,23 +63,23 @@ Datasources are provisioned automatically from `infra/observability/grafana/prov
 2. Run a basic query:
 
 ```logql
-{service="acme-api", environment="development"}
+{service="no-reboot-hq-api", environment="development"}
 ```
 
 Useful filters:
 
 ```logql
 # Only completed requests
-{service="acme-api"} |= "request completed"
+{service="no-reboot-hq-api"} |= "request completed"
 
 # Specific route
-{service="acme-api"} |= "/api/v1/invitations"
+{service="no-reboot-hq-api"} |= "/api/v1/invitations"
 
 # Errors only
-{service="acme-api"} | json | level="error"
+{service="no-reboot-hq-api"} | json | level="error"
 
 # Requests from a specific user
-{service="acme-api"} | json | userId="<id>"
+{service="no-reboot-hq-api"} | json | userId="<id>"
 ```
 
 ### Exploring Traces
@@ -92,11 +92,11 @@ Useful filters:
 ```
 
 ```traceql
-{ resource.service.name = "acme-api" }
+{ resource.service.name = "no-reboot-hq-api" }
 ```
 
 ```traceql
-{ resource.service.name = "acme-api" && span.http.route = "/api/v1/users" }
+{ resource.service.name = "no-reboot-hq-api" && span.http.route = "/api/v1/users" }
 ```
 
 ```traceql
@@ -118,10 +118,10 @@ Useful queries:
 up
 
 # Request rate by route
-sum by (route, status_code) (rate(acme_api_http_requests_total[5m]))
+sum by (route, status_code) (rate(no_reboot_hq_api_http_requests_total[5m]))
 
 # p95 request latency
-histogram_quantile(0.95, sum by (le) (rate(acme_api_http_request_duration_ms_bucket[5m])))
+histogram_quantile(0.95, sum by (le) (rate(no_reboot_hq_api_http_request_duration_ms_bucket[5m])))
 
 # Span throughput from Tempo metrics-generator
 sum by (service) (rate(traces_spanmetrics_calls_total[5m]))

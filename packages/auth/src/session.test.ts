@@ -1,30 +1,30 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const baseUser = {
-  id: '4d94bf8f-b3d9-49d2-a737-932b40db673a',
-  name: 'Ada Lovelace',
-  email: 'ada@example.com',
+  id: "4d94bf8f-b3d9-49d2-a737-932b40db673a",
+  name: "Ada Lovelace",
+  email: "ada@example.com",
   emailVerified: true,
   image: null,
-  createdAt: new Date('2026-01-01T10:00:00.000Z'),
-  updatedAt: new Date('2026-01-01T10:00:00.000Z'),
+  createdAt: new Date("2026-01-01T10:00:00.000Z"),
+  updatedAt: new Date("2026-01-01T10:00:00.000Z"),
 };
 
 const orgAlpha = {
-  id: '0faef1a3-1a0f-4cf6-96a0-a9382c006f17',
-  name: 'Acme Platform',
-  slug: 'acme-platform',
+  id: "0faef1a3-1a0f-4cf6-96a0-a9382c006f17",
+  name: "No Reboot HQ",
+  slug: "no-reboot-hq",
   logo: null,
-  createdAt: '2026-01-01T10:00:00.000Z',
+  createdAt: "2026-01-01T10:00:00.000Z",
   metadata: {},
 };
 
 const orgBeta = {
-  id: '58e7783f-8921-4dd3-81ed-cb82f37c1cd2',
-  name: 'Orbital Labs',
-  slug: 'orbital-labs',
+  id: "58e7783f-8921-4dd3-81ed-cb82f37c1cd2",
+  name: "Orbital Labs",
+  slug: "orbital-labs",
   logo: null,
-  createdAt: '2026-02-01T10:00:00.000Z',
+  createdAt: "2026-02-01T10:00:00.000Z",
   metadata: {},
 };
 
@@ -59,7 +59,7 @@ const {
   setActiveOrganizationMock: vi.fn(async () => undefined),
 }));
 
-vi.mock('./server', () => ({
+vi.mock("./server", () => ({
   auth: {
     api: {
       getSession: getSessionMock,
@@ -71,24 +71,24 @@ vi.mock('./server', () => ({
   },
 }));
 
-import { resolveAuthContext } from './session';
+import { resolveAuthContext } from "./session";
 
-describe('resolveAuthContext', () => {
+describe("resolveAuthContext", () => {
   beforeEach(() => {
     currentSession = {
       session: {
-        id: 'session-1',
+        id: "session-1",
         userId: baseUser.id,
-        expiresAt: new Date('2026-01-10T10:00:00.000Z'),
-        createdAt: new Date('2026-01-01T10:00:00.000Z'),
-        updatedAt: new Date('2026-01-01T10:00:00.000Z'),
-        token: 'session-token',
+        expiresAt: new Date("2026-01-10T10:00:00.000Z"),
+        createdAt: new Date("2026-01-01T10:00:00.000Z"),
+        updatedAt: new Date("2026-01-01T10:00:00.000Z"),
+        token: "session-token",
         activeOrganizationId: null,
       },
       user: baseUser,
     };
     listedOrganizations = [];
-    activeMemberRole = { role: 'owner' };
+    activeMemberRole = { role: "owner" };
     fullOrganization = orgAlpha;
 
     getSessionMock.mockClear();
@@ -98,10 +98,12 @@ describe('resolveAuthContext', () => {
     setActiveOrganizationMock.mockClear();
   });
 
-  it('auto-selects the only organization when the session has no active workspace', async () => {
+  it("auto-selects the only organization when the session has no active workspace", async () => {
     listedOrganizations = [orgAlpha];
 
-    const context = await resolveAuthContext(new Headers({ cookie: 'session=valid' }));
+    const context = await resolveAuthContext(
+      new Headers({ cookie: "session=valid" }),
+    );
 
     expect(setActiveOrganizationMock).toHaveBeenCalledWith({
       body: {
@@ -124,14 +126,16 @@ describe('resolveAuthContext', () => {
         name: orgAlpha.name,
       },
       organizations: [orgAlpha],
-      role: 'owner',
+      role: "owner",
     });
   });
 
-  it('keeps memberships but leaves the active workspace unset when multiple orgs exist', async () => {
+  it("keeps memberships but leaves the active workspace unset when multiple orgs exist", async () => {
     listedOrganizations = [orgAlpha, orgBeta];
 
-    const context = await resolveAuthContext(new Headers({ cookie: 'session=valid' }));
+    const context = await resolveAuthContext(
+      new Headers({ cookie: "session=valid" }),
+    );
 
     expect(setActiveOrganizationMock).not.toHaveBeenCalled();
     expect(getActiveMemberRoleMock).not.toHaveBeenCalled();
@@ -144,24 +148,26 @@ describe('resolveAuthContext', () => {
     });
   });
 
-  it('clears a stale active workspace and recovers to the sole remaining membership', async () => {
+  it("clears a stale active workspace and recovers to the sole remaining membership", async () => {
     currentSession = {
       session: {
-        id: 'session-1',
+        id: "session-1",
         userId: baseUser.id,
-        expiresAt: new Date('2026-01-10T10:00:00.000Z'),
-        createdAt: new Date('2026-01-01T10:00:00.000Z'),
-        updatedAt: new Date('2026-01-01T10:00:00.000Z'),
-        token: 'session-token',
-        activeOrganizationId: '2f6cbdbc-ecab-4bb7-88cc-18fb4d40213b',
+        expiresAt: new Date("2026-01-10T10:00:00.000Z"),
+        createdAt: new Date("2026-01-01T10:00:00.000Z"),
+        updatedAt: new Date("2026-01-01T10:00:00.000Z"),
+        token: "session-token",
+        activeOrganizationId: "2f6cbdbc-ecab-4bb7-88cc-18fb4d40213b",
       },
       user: baseUser,
     };
     listedOrganizations = [orgBeta];
-    activeMemberRole = { role: 'admin' };
+    activeMemberRole = { role: "admin" };
     fullOrganization = orgBeta;
 
-    const context = await resolveAuthContext(new Headers({ cookie: 'session=valid' }));
+    const context = await resolveAuthContext(
+      new Headers({ cookie: "session=valid" }),
+    );
 
     expect(setActiveOrganizationMock).toHaveBeenNthCalledWith(1, {
       body: {
@@ -182,7 +188,7 @@ describe('resolveAuthContext', () => {
         name: orgBeta.name,
       },
       organizations: [orgBeta],
-      role: 'admin',
+      role: "admin",
     });
   });
 });

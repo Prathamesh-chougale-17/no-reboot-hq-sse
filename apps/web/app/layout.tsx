@@ -1,37 +1,39 @@
-import type { Metadata } from 'next';
-import { IBM_Plex_Mono, Space_Grotesk } from 'next/font/google';
-import Link from 'next/link';
+import type { Metadata } from "next";
+import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import Link from "next/link";
 
-import { canViewOperationalDashboards } from '@acme/auth';
-import { APP_NAME } from '@acme/shared';
-import '@acme/ui/globals.css';
+import { canViewOperationalDashboards } from "@acme/auth";
+import { APP_NAME } from "@acme/shared";
+import "@acme/ui/globals.css";
 
-import { HeaderMenu, type HeaderNavItem } from '@/components/header-menu';
-import { QueryProvider } from '@/components/providers/query-provider';
-import { ThemeProvider } from '@/components/providers/theme-provider';
-import { getCurrentUser } from '@/lib/auth';
+import { HeaderMenu, type HeaderNavItem } from "@/components/header-menu";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { getCurrentUser } from "@/lib/auth";
 
 const displayFont = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-display',
+  subsets: ["latin"],
+  variable: "--font-display",
 });
 
 const monoFont = IBM_Plex_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-  weight: ['400', '500'],
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} | Monorepo Starter`,
-  description: 'Production-grade monorepo starter with Next.js, Hono, Drizzle, and observability.',
+  title: `${APP_NAME} | Dynamic Configuration`,
+  description:
+    "Runtime configuration, versioning, service tokens, and live propagation.",
 };
 
 const navItems: HeaderNavItem[] = [
-  { href: '/', label: 'Overview' },
-  { href: '/health', label: 'Health', requiresPrivilege: true },
-  { href: '/users', label: 'Users' },
-  { href: '/api/v1/docs', label: 'API Docs', kind: 'link' },
+  { href: "/", label: "Overview" },
+  { href: "/configs", label: "Configs" },
+  { href: "/health", label: "Health", requiresPrivilege: true },
+  { href: "/users", label: "Users" },
+  { href: "/api/v1/docs", label: "API Docs", kind: "link" },
 ];
 
 export default async function RootLayout({
@@ -41,7 +43,9 @@ export default async function RootLayout({
 }>) {
   const currentUser = await getCurrentUser();
   const visibleNavItems = navItems.filter(
-    (item) => !item.requiresPrivilege || canViewOperationalDashboards(currentUser?.role),
+    (item) =>
+      !item.requiresPrivilege ||
+      canViewOperationalDashboards(currentUser?.role),
   );
 
   return (
@@ -59,11 +63,16 @@ export default async function RootLayout({
                     className="flex min-w-fit items-center gap-3 text-sm font-semibold"
                   >
                     <span className="grid size-9 place-items-center rounded-lg border border-slate-200 bg-slate-900 text-xs font-bold text-white dark:border-slate-700 dark:bg-slate-100 dark:text-slate-950">
-                      AC
+                      NR
                     </span>
-                    <span className="text-base text-slate-950 dark:text-slate-50">{APP_NAME}</span>
+                    <span className="text-base text-slate-950 dark:text-slate-50">
+                      {APP_NAME}
+                    </span>
                   </Link>
-                  <HeaderMenu currentUser={currentUser} navItems={visibleNavItems} />
+                  <HeaderMenu
+                    currentUser={currentUser}
+                    navItems={visibleNavItems}
+                  />
                 </div>
               </header>
               <main className="mx-auto w-full max-w-[1480px] px-4 py-6 sm:px-6 lg:px-8">

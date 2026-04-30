@@ -1,0 +1,20 @@
+{
+  "name": "@acme/events",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@acme/config": "workspace:*",
+    "@acme/shared": "workspace:*",
+    "kafkajs": "catalog:",
+    "zod": "catalog:"
+  },
+  "scripts": {
+    "lint": "pnpm exec eslint .",
+    "typecheck": "pnpm exec tsc --noEmit",
+    "test": "pnpm exec vitest run"
+  }
+}

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 const optionalUrl = z
   .string()
@@ -20,8 +20,25 @@ const FeatureFlagOverridesSchema = z.object({
 
 export const AsyncPlatformEnvSchema = z.object({
   REDIS_URL: optionalUrl,
-  REDIS_PREFIX: z.string().trim().min(1).default('acme-platform'),
+  REDIS_PREFIX: z.string().trim().min(1).default("no-reboot-hq"),
   FEATURE_FLAGS_JSON: optionalString,
+  KAFKA_BROKERS: optionalString,
+  CONFIG_EVENTS_TOPIC: z.string().trim().min(1).default("config.events"),
+  CONFIG_ENCRYPTION_KEY: z
+    .string()
+    .trim()
+    .min(32)
+    .default("local-config-encryption-key-32-bytes"),
+  CONFIG_TOKEN_PEPPER: z
+    .string()
+    .trim()
+    .min(32)
+    .default("local-config-token-pepper-32-bytes"),
+  CONFIG_OUTBOX_PUBLISH_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5_000),
 });
 
 export type AsyncPlatformEnv = z.infer<typeof AsyncPlatformEnvSchema>;

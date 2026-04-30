@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { Queue, Worker } from 'bullmq';
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { Queue, Worker } from "bullmq";
 
 import {
   JOB_QUEUE_NAMES,
@@ -8,20 +8,20 @@ import {
   enqueueInviteEmailJob,
   getRedisConnection,
   inviteEmailJobPayloadSchema,
-} from './queues';
+} from "./queues";
 
 const hasRedis = Boolean(process.env.REDIS_URL);
-const queuePrefix = process.env.REDIS_PREFIX ?? 'acme-platform';
-const invitationId = '2f989fd7-cf87-4981-851d-2787de019324';
+const queuePrefix = process.env.REDIS_PREFIX ?? "no-reboot-hq";
+const invitationId = "2f989fd7-cf87-4981-851d-2787de019324";
 
-describe.skipIf(!hasRedis)('job queues', () => {
+describe.skipIf(!hasRedis)("job queues", () => {
   let inviteQueue: Queue | undefined;
   let inviteWorker: Worker | undefined;
 
   beforeEach(async () => {
     inviteQueue = new Queue(JOB_QUEUE_NAMES.inviteEmail, {
       prefix: queuePrefix,
-      connection: getRedisConnection('producer'),
+      connection: getRedisConnection("producer"),
     });
 
     await inviteQueue.obliterate({ force: true });
@@ -35,12 +35,12 @@ describe.skipIf(!hasRedis)('job queues', () => {
     await closeRedisConnections();
   });
 
-  it('enqueues invite-email jobs that a worker can process', async () => {
+  it("enqueues invite-email jobs that a worker can process", async () => {
     const seenInvitations: string[] = [];
 
     const jobHandled = new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error('Timed out waiting for Redis-backed invite job'));
+        reject(new Error("Timed out waiting for Redis-backed invite job"));
       }, 10_000);
 
       inviteWorker = new Worker(
@@ -56,7 +56,7 @@ describe.skipIf(!hasRedis)('job queues', () => {
         },
         {
           prefix: queuePrefix,
-          connection: getRedisConnection('worker'),
+          connection: getRedisConnection("worker"),
         },
       );
     });

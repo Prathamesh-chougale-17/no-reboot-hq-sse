@@ -1,31 +1,41 @@
 import {
   createAuditRepository,
+  createConfigRepository,
   createUsersRepository,
   createWebhookRepository,
   type AuditRepository,
+  type ConfigRepository,
   type UsersRepository,
   type WebhookRepository,
-} from '@acme/db';
-import { loadApiEnv, resolveServerFeatureFlags, type ApiEnv } from '@acme/config';
-import { createLogger } from '@acme/logger';
-import { APP_VERSION, API_V1_PREFIX } from '@acme/shared';
-import * as Sentry from '@sentry/node';
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import type { ContentfulStatusCode } from 'hono/utils/http-status';
+} from "@acme/db";
+import {
+  loadApiEnv,
+  resolveServerFeatureFlags,
+  type ApiEnv,
+} from "@acme/config";
+import { createLogger } from "@acme/logger";
+import { APP_VERSION, API_V1_PREFIX } from "@acme/shared";
+import * as Sentry from "@sentry/node";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-import { AppError, jsonError } from './lib/http';
-import { metricsContentType, renderMetrics } from './lib/metrics';
-import { hydrateAuthContext } from './middleware/auth-context';
-import { requestContextMiddleware, type AppContext } from './middleware/request-context';
-import { createV1Routes } from './routes/v1';
-import { HealthService } from './services/health-service';
-import { UserService } from './services/user-service';
-import { WebhookService } from './services/webhook-service';
+import { AppError, jsonError } from "./lib/http";
+import { metricsContentType, renderMetrics } from "./lib/metrics";
+import { hydrateAuthContext } from "./middleware/auth-context";
+import {
+  requestContextMiddleware,
+  type AppContext,
+} from "./middleware/request-context";
+import { createV1Routes } from "./routes/v1";
+import { ConfigService } from "./services/config-service";
+import { HealthService } from "./services/health-service";
+import { UserService } from "./services/user-service";
+import { WebhookService } from "./services/webhook-service";
 
 const splitCorsOrigins = (origins: string): string[] =>
   origins
-    .split(',')
+    .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
 
@@ -38,10 +48,10 @@ const initSentry = (env: ApiEnv): void => {
 
   Sentry.init({
     dsn: env.API_SENTRY_DSN,
-    enabled: Boolean(env.API_SENTRY_DSN) && env.NODE_ENV !== 'development',
+    enabled: Boolean(env.API_SENTRY_DSN) && env.NODE_ENV !== "development",
     environment: env.NODE_ENV,
     release: APP_VERSION,
-    tracesSampleRate: env.NODE_ENV === 'production' ? 0.1 : 0,
+    tracesSampleRate: env.NODE_ENV === "production" ? 0.1 : 0,
   });
 
   sentryInitialized = true;
@@ -52,6 +62,7 @@ export type CreateAppOptions = {
   usersRepository?: UsersRepository;
   auditRepository?: AuditRepository;
   webhookRepository?: WebhookRepository;
+  configRepository?: ConfigRepository;
 };
 
 export const createApp = (options: CreateAppOptions = {}) => {
@@ -62,7 +73,7 @@ export const createApp = (options: CreateAppOptions = {}) => {
     environment: env.NODE_ENV,
     level: env.API_LOG_LEVEL,
     ...(env.LOKI_URL ? { lokiUrl: env.LOKI_URL } : {}),
-    enablePretty: env.NODE_ENV !== 'production',
+    enablePretty: env.NODE_ENV !== "production",
     enableLoki,
   });
 
@@ -70,7 +81,9 @@ export const createApp = (options: CreateAppOptions = {}) => {
 
   const usersRepository = options.usersRepository ?? createUsersRepository();
   const auditRepository = options.auditRepository ?? createAuditRepository();
-  const webhookRepository = options.webhookRepository ?? createWebhookRepository();
+  const webhookRepository =
+    options.webhookRepository ?? createWebhookRepository();
+  const configRepository = options.configRepository ?? createConfigRepository();
   const featureFlags = resolveServerFeatureFlags(process.env);
   const userService = new UserService(
     usersRepository,
@@ -79,12 +92,16 @@ export const createApp = (options: CreateAppOptions = {}) => {
     featureFlags,
   );
   const healthService = new HealthService(usersRepository, env);
-  const webhookService = new WebhookService(webhookRepository, env.BETTER_AUTH_SECRET);
+  const webhookService = new WebhookService(
+    webhookRepository,
+    env.BETTER_AUTH_SECRET,
+  );
+  const configService = new ConfigService(configRepository, env);
 
   const app = new Hono<AppContext>();
 
   app.use(
-    '*',
+    "*",
     cors({
       origin: (origin) => {
         const allowedOrigins = splitCorsOrigins(env.API_CORS_ORIGIN);
@@ -93,24 +110,26 @@ export const createApp = (options: CreateAppOptions = {}) => {
           return allowedOrigins[0] ?? env.APP_ORIGIN;
         }
 
-        return allowedOrigins.includes(origin) ? origin : (allowedOrigins[0] ?? env.APP_ORIGIN);
+        return allowedOrigins.includes(origin)
+          ? origin
+          : (allowedOrigins[0] ?? env.APP_ORIGIN);
       },
-      allowHeaders: ['Content-Type', 'x-request-id'],
-      allowMethods: ['GET', 'POST', 'OPTIONS'],
-      exposeHeaders: ['x-request-id'],
+      allowHeaders: ["Authorization", "Content-Type", "x-request-id"],
+      allowMethods: ["GET", "POST", "OPTIONS"],
+      exposeHeaders: ["x-request-id"],
       credentials: true,
     }),
   );
-  app.use('*', requestContextMiddleware({ env, logger }));
+  app.use("*", requestContextMiddleware({ env, logger }));
   app.use(`${API_V1_PREFIX}/*`, hydrateAuthContext());
 
   app.get(
-    '/metrics',
+    "/metrics",
     async () =>
       new Response(await renderMetrics(), {
         status: 200,
         headers: {
-          'Content-Type': metricsContentType,
+          "Content-Type": metricsContentType,
         },
       }),
   );
@@ -122,19 +141,22 @@ export const createApp = (options: CreateAppOptions = {}) => {
       userService,
       healthService,
       webhookService,
+      configService,
     }),
   );
 
   app.onError((error, c) => {
-    const statusCode = (error instanceof AppError ? error.statusCode : 500) as ContentfulStatusCode;
+    const statusCode = (
+      error instanceof AppError ? error.statusCode : 500
+    ) as ContentfulStatusCode;
 
-    const loggerInstance = c.get('logger');
+    const loggerInstance = c.get("logger");
     loggerInstance?.error(
       {
         err: error,
         statusCode,
       },
-      'request failed',
+      "request failed",
     );
 
     Sentry.captureException(error);
@@ -149,10 +171,10 @@ export const createApp = (options: CreateAppOptions = {}) => {
       );
     }
 
-    return jsonError(c, 500, 'INTERNAL_ERROR', 'Unexpected server error');
+    return jsonError(c, 500, "INTERNAL_ERROR", "Unexpected server error");
   });
 
-  app.notFound((c) => jsonError(c, 404, 'NOT_FOUND', 'Route not found'));
+  app.notFound((c) => jsonError(c, 404, "NOT_FOUND", "Route not found"));
 
   return app;
 };
