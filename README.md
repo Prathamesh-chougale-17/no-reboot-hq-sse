@@ -25,6 +25,21 @@ No Reboot HQ gives you:
 - metrics, logs, and traces through Prometheus, Loki, Tempo, and Grafana
 - a browser-based Client Simulator for live no-restart demos
 
+## Real-Time Examples
+
+The same mechanism works for many production situations. A config value changes in the dashboard, the API records a new version, the worker publishes the event, and subscribed services reload their snapshot without a deploy.
+
+| Scenario             | Example config                        | What changes live                                                                         |
+| -------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Checkout kill switch | `CHECKOUT_ENABLED=false`              | Disable a risky purchase path during an incident without restarting the checkout service. |
+| Payment failover     | `PAYMENT_PROVIDER="stripe_backup"`    | Move traffic to a backup provider while the primary provider is degraded.                 |
+| Progressive rollout  | `NEW_PRICING_ROLLOUT_PERCENT=10`      | Roll a pricing or feature change to 10 percent of users, then raise it gradually.         |
+| Regional routing     | `INDIA_PAYMENT_GATEWAY="razorpay"`    | Route one region to a different provider while the rest of the world stays unchanged.     |
+| Secret rotation      | `SENDGRID_API_KEY=<encrypted secret>` | Rotate a provider key and let services pick up the new value at runtime.                  |
+| Rate limit tuning    | `FREE_PLAN_REQUESTS_PER_MINUTE=120`   | Tighten or relax throttles immediately during traffic spikes.                             |
+| Incident mitigation  | `SEARCH_INDEXING_ENABLED=false`       | Turn off expensive background work while the platform is under pressure.                  |
+| Experiment control   | `RECOMMENDATION_MODEL="v3"`           | Switch models or algorithms for a service without shipping a new build.                   |
+
 ## Quick Demo
 
 Start everything:
