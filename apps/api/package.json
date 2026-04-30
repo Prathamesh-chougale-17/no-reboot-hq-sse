@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm exec dotenv -e .env -- tsx watch src/index.ts",
+    "dev:worker": "pnpm exec dotenv -e .env -- tsx watch src/worker.ts",
     "build": "pnpm exec tsup --config tsup.config.ts",
     "start": "pnpm exec dotenv -e .env -- node dist/index.cjs",
     "start:worker": "pnpm exec dotenv -e .env -- node dist/worker.cjs",

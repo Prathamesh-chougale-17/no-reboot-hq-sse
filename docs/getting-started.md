@@ -147,7 +147,7 @@ pnpm db:studio       # opens Drizzle Studio in the browser
 pnpm dev
 ```
 
-This starts `apps/web` and `apps/api` in watch mode via Turborepo.
+This starts `apps/web`, `apps/api`, and the API worker in watch mode via Turborepo. The worker publishes the config outbox to Redpanda, so it is required for live no-reboot propagation.
 
 To run apps individually:
 
@@ -156,10 +156,10 @@ pnpm --filter @acme/web dev
 pnpm --filter @acme/api dev
 ```
 
-To run the BullMQ worker separately (needed for async invitation emails and webhooks):
+To run the BullMQ worker separately (needed for async invitation emails, webhooks, and config event propagation):
 
 ```bash
-pnpm --filter @acme/api worker
+pnpm --filter @acme/api dev:worker
 ```
 
 ## Local URLs

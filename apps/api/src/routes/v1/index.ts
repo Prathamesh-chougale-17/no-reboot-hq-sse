@@ -53,8 +53,8 @@ export const createV1Routes = ({
   router.route("/", createHealthRoutes({ healthService }));
   router.route("/", createUserRoutes({ userService }));
   router.route("/", createWebhookRoutes({ webhookService }));
-  router.route("/", createConfigRoutes({ configService }));
-  router.route("/", createClientConfigRoutes({ configService }));
+  router.route("/", createConfigRoutes({ env, configService }));
+  router.route("/", createClientConfigRoutes({ env, configService }));
   router.route("/", createDiagnosticRoutes({ env }));
 
   return router;

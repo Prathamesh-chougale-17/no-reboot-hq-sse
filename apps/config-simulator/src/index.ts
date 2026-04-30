@@ -116,6 +116,13 @@ const watchEvents = async () => {
         continue;
       }
 
+      if (parsed.event === "unavailable") {
+        console.error(
+          `[config-simulator] event stream unavailable: ${parsed.data}`,
+        );
+        return;
+      }
+
       const event = ConfigEventDtoSchema.parse(JSON.parse(parsed.data));
       console.log(
         `[config-simulator] ${event.eventType} ${event.entryKey ?? ""} revision ${event.revision ?? "n/a"}`,

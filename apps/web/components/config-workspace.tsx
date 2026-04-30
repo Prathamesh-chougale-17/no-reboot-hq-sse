@@ -176,6 +176,9 @@ export function ConfigWorkspace({ viewer }: { viewer: CurrentUserDto }) {
     eventSource.addEventListener("connected", () => {
       setLiveState("live");
     });
+    eventSource.addEventListener("unavailable", () => {
+      setLiveState("offline");
+    });
     eventSource.onerror = () => {
       setLiveState("offline");
     };

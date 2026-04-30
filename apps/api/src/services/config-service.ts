@@ -483,10 +483,6 @@ export class ConfigService {
     serviceToken: ServiceTokenRecord,
     event: ConfigEventDto,
   ): boolean {
-    return (
-      event.environmentId === serviceToken.environmentId ||
-      event.environmentId === null ||
-      event.appId === serviceToken.appId
-    );
+    return event.environmentId === serviceToken.environmentId;
   }
 }

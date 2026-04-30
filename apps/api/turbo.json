@@ -2,6 +2,9 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
+    "dev": {
+      "with": ["dev:worker"]
+    },
     "start": {
       "with": ["start:worker"]
     }

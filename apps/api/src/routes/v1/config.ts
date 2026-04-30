@@ -6,6 +6,7 @@ import {
   UpsertConfigEntryInputSchema,
 } from "@acme/shared";
 import { subscribeToConfigEvents } from "@acme/events";
+import type { ApiEnv } from "@acme/config";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
@@ -65,8 +66,10 @@ const getAuthContext = (c: Parameters<typeof jsonSuccess>[0]) => {
 };
 
 export const createConfigRoutes = ({
+  env,
   configService,
 }: {
+  env: ApiEnv;
   configService: ConfigService;
 }) => {
   const router = new Hono<AppContext>();
@@ -498,39 +501,78 @@ export const createConfigRoutes = ({
 
       return streamSSE(c, async (stream) => {
         const abortController = new AbortController();
+        let connectionCounted = true;
+        const closeConnection = () => {
+          if (!connectionCounted) {
+            return;
+          }
+
+          connectionCounted = false;
+          decrementConfigSseConnections("dashboard");
+        };
+
         incrementConfigSseConnections("dashboard");
         stream.onAbort(() => {
           abortController.abort();
-          decrementConfigSseConnections("dashboard");
+          closeConnection();
         });
 
-        await stream.writeSSE({
-          event: "connected",
-          data: JSON.stringify({ environmentId }),
-        });
+        try {
+          const consumer = await subscribeToConfigEvents({
+            groupId: `nrhq-dashboard-${environmentId}-${crypto.randomUUID()}`,
+            signal: abortController.signal,
+            env,
+            onEvent: async (event) => {
+              if (event.environmentId !== environmentId) {
+                return;
+              }
 
-        await subscribeToConfigEvents({
-          groupId: `nrhq-dashboard-${environmentId}-${crypto.randomUUID()}`,
-          signal: abortController.signal,
-          onEvent: async (event) => {
-            if (event.environmentId !== environmentId) {
-              return;
-            }
-
-            await stream.writeSSE({
-              id: event.id,
-              event: event.eventType,
-              data: JSON.stringify(event),
-            });
-          },
-        });
-
-        while (!abortController.signal.aborted) {
-          await stream.writeSSE({
-            event: "heartbeat",
-            data: JSON.stringify({ timestamp: new Date().toISOString() }),
+              await stream.writeSSE({
+                id: event.id,
+                event: event.eventType,
+                data: JSON.stringify(event),
+              });
+            },
           });
-          await stream.sleep(15_000);
+
+          if (!consumer) {
+            await stream.writeSSE({
+              event: "unavailable",
+              data: JSON.stringify({
+                environmentId,
+                reason: "config_event_streaming_disabled",
+              }),
+            });
+            return;
+          }
+
+          await stream.writeSSE({
+            event: "connected",
+            data: JSON.stringify({ environmentId }),
+          });
+
+          while (!abortController.signal.aborted) {
+            await stream.writeSSE({
+              event: "heartbeat",
+              data: JSON.stringify({ timestamp: new Date().toISOString() }),
+            });
+            await stream.sleep(15_000);
+          }
+        } catch (error) {
+          if (!abortController.signal.aborted) {
+            await stream.writeSSE({
+              event: "unavailable",
+              data: JSON.stringify({
+                environmentId,
+                reason:
+                  error instanceof Error
+                    ? error.message
+                    : "config_event_streaming_unavailable",
+              }),
+            });
+          }
+        } finally {
+          closeConnection();
         }
       });
     },
