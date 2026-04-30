@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { SignInInputSchema } from "@acme/shared";
@@ -12,10 +12,15 @@ import { authClient } from "@/lib/auth-client";
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Unable to sign you in right now.";
 
-export function SignInForm({ redirectTo }: { redirectTo: string | undefined }) {
+const getSafeRedirectTo = (value: string | null) =>
+  value && value.startsWith("/") && !value.startsWith("//") ? value : undefined;
+
+export function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const redirectTo = getSafeRedirectTo(searchParams.get("redirectTo"));
   const targetPath = useMemo(() => redirectTo || "/onboarding", [redirectTo]);
 
   return (

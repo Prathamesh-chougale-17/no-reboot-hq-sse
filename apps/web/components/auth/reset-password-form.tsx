@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { ResetPasswordInputSchema } from "@acme/shared";
@@ -11,10 +11,12 @@ import { authClient } from "@/lib/auth-client";
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Unable to reset your password.";
 
-export function ResetPasswordForm({ token }: { token: string | undefined }) {
+export function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const token = searchParams.get("token") ?? undefined;
 
   if (!token) {
     return (

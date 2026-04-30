@@ -1,17 +1,9 @@
+import { Suspense } from "react";
+
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
 
-export default async function ResetPasswordPage({
-  searchParams,
-}: {
-  searchParams?: Promise<{ token?: string }>;
-}) {
-  const resolvedSearchParams = await searchParams;
-  const token =
-    resolvedSearchParams && typeof resolvedSearchParams.token === "string"
-      ? resolvedSearchParams.token
-      : undefined;
-
+export default function ResetPasswordPage() {
   return (
     <AuthShell
       eyebrow="Recovery"
@@ -20,7 +12,9 @@ export default async function ResetPasswordPage({
       alternateHref="/sign-in"
       alternateLabel="Return to sign in"
     >
-      <ResetPasswordForm token={token} />
+      <Suspense fallback={null}>
+        <ResetPasswordForm />
+      </Suspense>
     </AuthShell>
   );
 }

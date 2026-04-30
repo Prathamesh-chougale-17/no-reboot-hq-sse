@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { AccountSignUpInputSchema } from "@acme/shared";
@@ -14,16 +14,16 @@ const getErrorMessage = (error: unknown) =>
     ? error.message
     : "Unable to finish sign-up right now.";
 
-export function SignUpForm({
-  redirectTo,
-  invitationId,
-}: {
-  redirectTo: string | undefined;
-  invitationId: string | undefined;
-}) {
+const getSafeRedirectTo = (value: string | null) =>
+  value && value.startsWith("/") && !value.startsWith("//") ? value : undefined;
+
+export function SignUpForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const redirectTo = getSafeRedirectTo(searchParams.get("redirectTo"));
+  const invitationId = searchParams.get("invitationId") ?? undefined;
   const invitationPreviewQuery = useInvitationPreviewQuery(invitationId);
   const invitationPreview = invitationPreviewQuery.data;
   const targetPath = useMemo(
